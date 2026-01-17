@@ -39,12 +39,12 @@ test.describe('PWA Manifest', () => {
   test('should have PNG icons', async ({ page }) => {
     await page.goto('/');
 
-    // Verify icons are accessible
-    const icon192 = await page.request.get('/icon-192.png');
+    // Verify icons are accessible (paths are relative to baseURL which includes /rider-triangle/)
+    const icon192 = await page.request.get('icon-192.png');
     expect(icon192.ok()).toBeTruthy();
     expect(icon192.headers()['content-type']).toContain('image/png');
 
-    const icon512 = await page.request.get('/icon-512.png');
+    const icon512 = await page.request.get('icon-512.png');
     expect(icon512.ok()).toBeTruthy();
     expect(icon512.headers()['content-type']).toContain('image/png');
   });
@@ -159,12 +159,13 @@ test.describe('Install Prompt - iOS', () => {
   });
 
   test('should show iOS-specific guidance', async ({ page }) => {
-    // Clear dismissal state
+    await page.goto('/');
+
+    // Clear dismissal state and reload
     await page.evaluate(() => {
       localStorage.removeItem('pwa-install-dismissed');
     });
-
-    await page.goto('/');
+    await page.reload();
 
     // Simulate iOS detection by checking for Share icon in banner
     // Note: The actual banner visibility depends on platform detection

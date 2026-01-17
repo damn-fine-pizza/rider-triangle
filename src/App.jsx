@@ -8,6 +8,7 @@ import { useOnboarding } from './hooks/useOnboarding';
 import { useTheme } from './hooks/useTheme';
 import { useImage } from './hooks/useImage';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { usePinchZoom } from './hooks/usePinchZoom';
 import { Marker } from './components/Marker';
 import { CalibrationMarker } from './components/CalibrationMarker';
 import { ClickGuide } from './components/ClickGuide';
@@ -125,6 +126,18 @@ export default function App() {
   // PWA install prompt
   const installPrompt = useInstallPrompt();
 
+  // Pinch-zoom for mobile
+  const pinchZoom = usePinchZoom({
+    minScale: 0.5,
+    maxScale: 4,
+    containerRef,
+  });
+
+  // Track if a gesture is in progress (to distinguish tap from pinch/pan)
+  const gestureInProgress = useRef(false);
+  const touchStartTime = useRef(0);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
   const secondaryImg = useImage(activeBikes[secondaryBike]?.img);
@@ -203,15 +216,39 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [bikeKeys, activeBike]);
 
-  // Handle click on image to place points
-  const handleImageClick = useCallback(
-    (e, bikeKey) => {
-      // Only respond to clicks for the active bike
-      if (bikeKey !== activeBike) return;
+  // Extract coordinates from mouse or touch event
+  const getEventCoordinates = useCallback((e) => {
+    // Touch event (changedTouches for touchend, touches for touchstart/move)
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      return {
+        clientX: e.changedTouches[0].clientX,
+        clientY: e.changedTouches[0].clientY,
+      };
+    }
+    if (e.touches && e.touches.length > 0) {
+      return {
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY,
+      };
+    }
+    // Mouse event or React synthetic event
+    return {
+      clientX: e.clientX,
+      clientY: e.clientY,
+    };
+  }, []);
 
-      const rect = e.currentTarget.getBoundingClientRect();
-      let x = e.clientX - rect.left;
-      let y = e.clientY - rect.top;
+  // Place marker at coordinates
+  const placeMarker = useCallback(
+    (bikeKey, clientX, clientY, rect) => {
+      let x = clientX - rect.left;
+      let y = clientY - rect.top;
+
+      // Account for pinch-zoom scale and position
+      if (pinchZoom.scale !== 1) {
+        x = (x - pinchZoom.position.x) / pinchZoom.scale;
+        y = (y - pinchZoom.position.y) / pinchZoom.scale;
+      }
 
       // For overlay bike, convert from visual (scaled) to local coordinates
       if (bikeKey !== primaryBike) {
@@ -241,8 +278,79 @@ export default function App() {
         advanceToNextTool();
       }
     },
-    [activeBike, activeTool, calibration, markersHook, advanceToNextTool, primaryBike]
+    [activeTool, calibration, markersHook, advanceToNextTool, primaryBike, pinchZoom.scale, pinchZoom.position]
   );
+
+  // Handle touch start - record for tap detection
+  const handleTouchStart = useCallback((e, bikeKey) => {
+    if (e.touches.length === 1) {
+      // Single finger - potential tap for marker placement
+      touchStartTime.current = Date.now();
+      touchStartPos.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+      gestureInProgress.current = false;
+    } else if (e.touches.length === 2) {
+      // Multi-touch - pinch gesture
+      gestureInProgress.current = true;
+      pinchZoom.handlers.onTouchStart(e);
+    }
+  }, [pinchZoom.handlers]);
+
+  // Handle touch move - detect if it's a gesture
+  const handleTouchMove = useCallback((e) => {
+    if (e.touches.length >= 2) {
+      gestureInProgress.current = true;
+      pinchZoom.handlers.onTouchMove(e);
+    } else if (e.touches.length === 1) {
+      // Check if finger moved significantly (pan or scroll intent)
+      const dx = Math.abs(e.touches[0].clientX - touchStartPos.current.x);
+      const dy = Math.abs(e.touches[0].clientY - touchStartPos.current.y);
+      if (dx > 10 || dy > 10) {
+        gestureInProgress.current = true;
+        // If zoomed in, allow panning
+        if (pinchZoom.scale > 1) {
+          pinchZoom.handlers.onTouchMove(e);
+        }
+      }
+    }
+  }, [pinchZoom.handlers, pinchZoom.scale]);
+
+  // Handle touch end - place marker if it was a tap
+  const handleTouchEnd = useCallback((e, bikeKey) => {
+    pinchZoom.handlers.onTouchEnd(e);
+
+    // Only place marker if:
+    // 1. Active bike matches
+    // 2. It was a short tap (< 300ms)
+    // 3. Finger didn't move much (< 10px)
+    // 4. No multi-touch gesture in progress
+    if (bikeKey !== activeBike) return;
+    if (gestureInProgress.current) return;
+
+    const tapDuration = Date.now() - touchStartTime.current;
+    if (tapDuration > 300) return;
+
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+
+    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+    if (dx > 10 || dy > 10) return;
+
+    // It's a valid tap - place marker
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    placeMarker(bikeKey, touch.clientX, touch.clientY, rect);
+  }, [activeBike, pinchZoom.handlers, placeMarker]);
+
+  // Handle mouse click (desktop)
+  const handleMouseClick = useCallback((e, bikeKey) => {
+    if (bikeKey !== activeBike) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    placeMarker(bikeKey, e.clientX, e.clientY, rect);
+  }, [activeBike, placeMarker]);
 
   // Reset all for a bike
   const handleResetBike = useCallback(
@@ -338,7 +446,10 @@ export default function App() {
         key={bikeKey}
         className={isOverlay ? 'absolute top-0 left-0' : 'relative inline-block'}
         style={style}
-        onClick={(e) => handleImageClick(e, bikeKey)}
+        onClick={(e) => handleMouseClick(e, bikeKey)}
+        onTouchStart={(e) => handleTouchStart(e, bikeKey)}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={(e) => handleTouchEnd(e, bikeKey)}
       >
         {bike.img ? (
           <img
@@ -859,16 +970,35 @@ export default function App() {
 
         {/* Overlay stage */}
         <div className="xl:col-span-2 p-3 card relative">
-          <div ref={containerRef} className="relative w-full overflow-auto" style={{ minHeight: 520 }}>
-            {hasTwoBikes ? (
-              <>
-                {/* Base layer: primary bike */}
-                {renderBikeLayer(primaryBike, false)}
+          {/* Zoom controls */}
+          {pinchZoom.scale !== 1 && (
+            <button
+              onClick={pinchZoom.resetZoom}
+              className="absolute top-5 right-5 z-20 btn-toggle-inactive text-xs flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+              </svg>
+              Reset zoom ({Math.round(pinchZoom.scale * 100)}%)
+            </button>
+          )}
+          <div
+            ref={containerRef}
+            className="relative w-full overflow-hidden"
+            style={{ minHeight: 520 }}
+            onWheel={pinchZoom.handlers.onWheel}
+          >
+            {/* Zoomable content wrapper */}
+            <div style={pinchZoom.zoomStyle}>
+              {hasTwoBikes ? (
+                <>
+                  {/* Base layer: primary bike */}
+                  {renderBikeLayer(primaryBike, false)}
 
-                {/* Overlay layer: secondary bike */}
-                {renderBikeLayer(secondaryBike, true)}
-              </>
-            ) : (
+                  {/* Overlay layer: secondary bike */}
+                  {renderBikeLayer(secondaryBike, true)}
+                </>
+              ) : (
               <div className="empty-state">
                 <svg className="w-16 h-16 text-muted mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -885,7 +1015,8 @@ export default function App() {
                   Manage bikes
                 </button>
               </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="mt-3 text-xs text-muted">

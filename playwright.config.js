@@ -13,7 +13,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: 'http://localhost:4173/rider-triangle/',
     trace: 'on-first-retry',
   },
 
@@ -40,7 +40,7 @@ export default defineConfig({
   // Run local server before tests
   webServer: {
     command: 'npm run preview',
-    url: 'http://localhost:4173',
+    url: 'http://localhost:4173/rider-triangle/',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
