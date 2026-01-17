@@ -281,38 +281,44 @@ export default function App() {
     [activeTool, calibration, markersHook, advanceToNextTool, primaryBike, pinchZoom.scale, pinchZoom.position]
   );
 
-  // Handle touch start - record for tap detection
+  // Handle touch start - record for tap detection and init panning
   const handleTouchStart = useCallback((e, bikeKey) => {
     if (e.touches.length === 1) {
-      // Single finger - potential tap for marker placement
+      // Single finger - potential tap OR pan (if zoomed)
       touchStartTime.current = Date.now();
       touchStartPos.current = {
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
       };
       gestureInProgress.current = false;
+
+      // If zoomed in, initialize panning state
+      if (pinchZoom.scale > 1) {
+        pinchZoom.handlers.onTouchStart(e);
+      }
     } else if (e.touches.length === 2) {
       // Multi-touch - pinch gesture
       gestureInProgress.current = true;
       pinchZoom.handlers.onTouchStart(e);
     }
-  }, [pinchZoom.handlers]);
+  }, [pinchZoom.handlers, pinchZoom.scale]);
 
-  // Handle touch move - detect if it's a gesture
+  // Handle touch move - detect if it's a gesture or pan
   const handleTouchMove = useCallback((e) => {
     if (e.touches.length >= 2) {
       gestureInProgress.current = true;
       pinchZoom.handlers.onTouchMove(e);
     } else if (e.touches.length === 1) {
-      // Check if finger moved significantly (pan or scroll intent)
       const dx = Math.abs(e.touches[0].clientX - touchStartPos.current.x);
       const dy = Math.abs(e.touches[0].clientY - touchStartPos.current.y);
-      if (dx > 10 || dy > 10) {
+
+      // If zoomed in and finger moved, it's a pan gesture
+      if (pinchZoom.scale > 1 && (dx > 5 || dy > 5)) {
         gestureInProgress.current = true;
-        // If zoomed in, allow panning
-        if (pinchZoom.scale > 1) {
-          pinchZoom.handlers.onTouchMove(e);
-        }
+        pinchZoom.handlers.onTouchMove(e);
+      } else if (dx > 10 || dy > 10) {
+        // Moved significantly but not zoomed - mark as gesture to prevent marker placement
+        gestureInProgress.current = true;
       }
     }
   }, [pinchZoom.handlers, pinchZoom.scale]);
@@ -988,8 +994,8 @@ export default function App() {
             style={{ minHeight: 520 }}
             onWheel={pinchZoom.handlers.onWheel}
           >
-            {/* Zoomable content wrapper */}
-            <div style={pinchZoom.zoomStyle}>
+            {/* Zoomable content wrapper - ref for direct DOM manipulation during gestures */}
+            <div ref={pinchZoom.setTransformRef} style={pinchZoom.zoomStyle}>
               {hasTwoBikes ? (
                 <>
                   {/* Base layer: primary bike */}
