@@ -54,27 +54,28 @@ Allow users to upload their own bike photos instead of hardcoded URLs.
 
 ---
 
-## Milestone 2: Rider Profile ⬅️ NEXT
+## Milestone 2: Rider Profile ✅ COMPLETE
 
 Add rider body measurements for angle calculations.
 
-### Tasks
-- [ ] Rider profile form: height, inseam, arm length
-- [ ] Default proportions from height (statistical averages)
-- [ ] Override individual measurements
-- [ ] Seat position selector (forward/center/back)
-- [ ] Store rider profiles
+### Completed Tasks
+- [x] Rider profile form: height, inseam, arm length
+- [x] Default proportions from height (statistical averages)
+- [x] Override individual measurements
+- [x] Seat position selector (forward/center/back)
+- [x] Store rider profiles (localStorage)
 
-### Files
-| File | Action |
+### Files Created
+| File | Status |
 |------|--------|
-| `src/components/RiderProfile.jsx` | Create |
-| `src/data/bodyProportions.js` | Create |
-| `src/hooks/useRiderProfile.js` | Create |
+| `src/components/RiderProfile.jsx` | ✅ Created |
+| `src/data/bodyProportions.js` | ✅ Created |
+| `src/hooks/useRiderProfile.js` | ✅ Created |
+| `src/App.jsx` | ✅ Updated with rider profile panel |
 
 ---
 
-## Milestone 3: Ergonomic Angle Calculations
+## Milestone 3: Ergonomic Angle Calculations ⬅️ NEXT
 
 Calculate and display rider angles: knee, hip, arm, torso.
 

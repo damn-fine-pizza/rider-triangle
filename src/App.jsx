@@ -2,11 +2,13 @@ import { useRef, useState, useCallback, useMemo } from 'react';
 import { useBikeStore } from './hooks/useBikeStore';
 import { useCalibration } from './hooks/useCalibration';
 import { useMarkers, MARKER_TYPES } from './hooks/useMarkers';
+import { useRiderProfile } from './hooks/useRiderProfile';
 import { useImage } from './hooks/useImage';
 import { Marker } from './components/Marker';
 import { ClickGuide } from './components/ClickGuide';
 import { BikeCard } from './components/BikeCard';
 import { ImageUpload } from './components/ImageUpload';
+import { RiderProfile } from './components/RiderProfile';
 
 // Tool sequence for auto-advance
 const TOOL_SEQUENCE = ['calibTop', 'calibBot', 'axle', 'seat', 'peg', 'bar'];
@@ -46,6 +48,9 @@ export default function App() {
   // Calibration and markers hooks - pass activeBikes
   const calibration = useCalibration(activeBikes);
   const markersHook = useMarkers(bikeKeys);
+
+  // Rider profile hook
+  const riderProfile = useRiderProfile();
 
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
@@ -520,6 +525,12 @@ export default function App() {
                 measurements.
               </div>
             )}
+          </div>
+
+          {/* Step 5: Rider Profile */}
+          <div className="p-4 bg-white rounded-2xl shadow">
+            <h2 className="font-medium mb-2">5) Rider Profile</h2>
+            <RiderProfile riderHook={riderProfile} />
           </div>
         </div>
 
