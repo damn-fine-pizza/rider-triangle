@@ -9,6 +9,8 @@ import { ClickGuide } from './components/ClickGuide';
 import { BikeCard } from './components/BikeCard';
 import { ImageUpload } from './components/ImageUpload';
 import { RiderProfile } from './components/RiderProfile';
+import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
+import { calculateAllAngles } from './utils/ergonomics';
 
 // Tool sequence for auto-advance
 const TOOL_SEQUENCE = ['calibTop', 'calibBot', 'axle', 'seat', 'peg', 'bar'];
@@ -43,6 +45,7 @@ export default function App() {
   const [activeBike, setActiveBike] = useState(primaryBike);
   const [activeTool, setActiveTool] = useState('calibTop');
   const [showBikeManager, setShowBikeManager] = useState(false);
+  const [ridingStyle, setRidingStyle] = useState('commute');
   const containerRef = useRef(null);
 
   // Calibration and markers hooks - pass activeBikes
@@ -66,6 +69,25 @@ export default function App() {
       setActiveBike(primaryBike);
     }
   }, [bikeKeys, activeBike, primaryBike]);
+
+  // Calculate ergonomic angles for each bike
+  const bikeAngles = useMemo(() => {
+    const result = {};
+    const measurements = riderProfile.measurements;
+
+    bikeKeys.forEach((key) => {
+      const markers = markersHook.markers[key];
+      const pxPerMM = calibration.pxPerMM[key];
+
+      if (markers && pxPerMM && measurements) {
+        result[key] = calculateAllAngles(markers, measurements, pxPerMM);
+      } else {
+        result[key] = { knee: null, hip: null, back: null, arm: null };
+      }
+    });
+
+    return result;
+  }, [bikeKeys, markersHook.markers, calibration.pxPerMM, riderProfile.measurements]);
 
   // Auto-advance to next tool
   const advanceToNextTool = useCallback(() => {
@@ -531,6 +553,39 @@ export default function App() {
           <div className="p-4 bg-white rounded-2xl shadow">
             <h2 className="font-medium mb-2">5) Rider Profile</h2>
             <RiderProfile riderHook={riderProfile} />
+          </div>
+
+          {/* Step 6: Ergonomic Angles */}
+          <div className="p-4 bg-white rounded-2xl shadow">
+            <h2 className="font-medium mb-2">6) Ergonomic Angles</h2>
+            <div className="mb-3">
+              <div className="text-xs text-gray-500 mb-1">Riding style:</div>
+              <RidingStyleSelector value={ridingStyle} onChange={setRidingStyle} />
+            </div>
+            {hasTwoBikes ? (
+              <AngleDisplay
+                angles={bikeAngles[primaryBike]}
+                anglesB={bikeAngles[secondaryBike]}
+                label={activeBikes[primaryBike]?.label}
+                labelB={activeBikes[secondaryBike]?.label}
+                color={activeBikes[primaryBike]?.color}
+                colorB={activeBikes[secondaryBike]?.color}
+                ridingStyle={ridingStyle}
+                showComparison={true}
+              />
+            ) : (
+              <AngleDisplay
+                angles={bikeAngles[primaryBike]}
+                label={activeBikes[primaryBike]?.label}
+                color={activeBikes[primaryBike]?.color}
+                ridingStyle={ridingStyle}
+              />
+            )}
+            {!calibration.isCalibrated && (
+              <div className="mt-2 text-xs text-amber-700">
+                Complete calibration and place all markers (seat, peg, bar) to calculate angles.
+              </div>
+            )}
           </div>
         </div>
 
