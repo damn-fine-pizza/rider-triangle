@@ -119,7 +119,46 @@ src/
 - Installable on mobile/desktop
 - iOS/Android meta tags for home screen
 
+## Development Practices
+
+### Centralized Constants
+
+All magic numbers and configurable values should be in `src/constants.js`:
+- `TOUCH` - Touch interaction thresholds (tap duration, movement, loupe delay)
+- `LOUPE` - Touch loupe appearance (size, magnification, offset)
+- `ZOOM` - Pinch-zoom limits and behavior
+- `TOOL_SEQUENCE` / `TOOL_LABELS` - Calibration tool definitions
+- `MARKER_TYPES` - Rider triangle marker types
+- `STAGE_MIN_HEIGHT_PX` - Minimum stage height
+
+When adding features, check if constants should be centralized.
+
+### Code Quality
+
+Build fails if linting or formatting fails:
+
+```bash
+npm run lint        # ESLint (v9 flat config)
+npm run lint:fix    # Auto-fix lint issues
+npm run format      # Format with Prettier
+npm run format:check # Check formatting
+npm run build       # Runs lint + format:check + vite build
+```
+
+### TDD Approach
+
+When implementing new features or fixing bugs, follow Test-Driven Development:
+1. **Write the test first** - define expected behavior
+2. **Run test** - verify it fails (red)
+3. **Implement the feature** - minimal code to pass
+4. **Run test** - verify it passes (green)
+5. **Refactor** if needed
+
+Map new features to tests in README.md and ROADMAP.md.
+
 ## Testing
+
+### Unit Tests (Vitest)
 
 ```bash
 npm run test      # Watch mode
@@ -127,6 +166,22 @@ npm run test:run  # Single run
 ```
 
 Tests are in `src/utils/*.test.js`. Currently testing ergonomics calculations.
+
+### E2E Tests (Playwright)
+
+```bash
+npx playwright test                    # Run all E2E tests
+npx playwright test --project=chromium # Chromium only
+npx playwright test e2e/pwa.spec.js    # Specific test file
+```
+
+E2E tests are in `e2e/` directory:
+- `pwa.spec.js` - PWA manifest, service worker, install prompts
+- `mobile-markers.spec.js` - Touch/tap marker placement, pinch-zoom
+
+**Playwright config:** `playwright.config.js`
+- Projects: chromium, android-chrome (Pixel 5), ios-safari (iPhone 13)
+- Base URL: `http://localhost:4173/rider-triangle/`
 
 ## Deployment
 

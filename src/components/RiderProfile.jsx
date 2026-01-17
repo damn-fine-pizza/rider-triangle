@@ -60,9 +60,7 @@ function MeasurementRow({ label, estimatedMM, overrideMM, onOverride, onClear })
           reset
         </button>
       )}
-      {!isOverridden && (
-        <span className="text-xs text-muted">(est.)</span>
-      )}
+      {!isOverridden && <span className="text-xs text-muted">(est.)</span>}
     </div>
   );
 }
@@ -184,9 +182,7 @@ export function RiderProfile({ riderHook }) {
 
       {/* Body measurements */}
       <div className="border-t border-[--border-color] pt-2">
-        <div className="text-xs text-muted mb-1">
-          Click values to override, or use estimates:
-        </div>
+        <div className="text-xs text-muted mb-1">Click values to override, or use estimates:</div>
         <MeasurementRow
           label="Inseam"
           estimatedMM={estimated?.inseam}
@@ -218,7 +214,11 @@ export function RiderProfile({ riderHook }) {
             <button
               key={key}
               onClick={() => setSeatPosition(key)}
-              className={activeProfile.seatPosition === key ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
+              className={
+                activeProfile.seatPosition === key
+                  ? 'btn-toggle-neutral-active'
+                  : 'btn-toggle-inactive'
+              }
             >
               {label}
             </button>

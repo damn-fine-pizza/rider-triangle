@@ -1,10 +1,9 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { distanceInMM } from '../utils/geometry';
+import { MARKER_TYPES } from '../constants';
 
-/**
- * Marker types for rider triangle
- */
-export const MARKER_TYPES = ['seat', 'peg', 'bar'];
+// Re-export for backwards compatibility
+export { MARKER_TYPES };
 
 /**
  * Hook for managing rider triangle markers for multiple bikes.

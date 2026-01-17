@@ -70,10 +70,7 @@ export function BikeCard({
     <div className="border border-[--border-color] rounded-xl p-3 bg-[--bg-card] shadow-sm">
       {/* Header: Color dot + Label + Remove */}
       <div className="flex items-center gap-2 mb-2">
-        <div
-          className="w-4 h-4 rounded-full shrink-0"
-          style={{ background: bike.color }}
-        />
+        <div className="w-4 h-4 rounded-full shrink-0" style={{ background: bike.color }} />
 
         {isEditing ? (
           <input
@@ -110,26 +107,15 @@ export function BikeCard({
       {/* Image preview */}
       <div className="relative mb-2 bg-[--bg-card-hover] rounded-lg overflow-hidden aspect-video">
         {bike.img ? (
-          <img
-            src={bike.img}
-            alt={bike.label}
-            className="w-full h-full object-contain"
-          />
+          <img src={bike.img} alt={bike.label} className="w-full h-full object-contain" />
         ) : (
-          <div className="flex items-center justify-center h-full text-muted text-sm">
-            No image
-          </div>
+          <div className="flex items-center justify-center h-full text-muted text-sm">No image</div>
         )}
 
         {/* Change image button overlay */}
         <label className="absolute bottom-1 right-1 px-2 py-1 bg-[--bg-card]/90 rounded text-xs cursor-pointer hover:bg-[--bg-card]">
           Change
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
+          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
         </label>
       </div>
 
@@ -159,9 +145,7 @@ export function BikeCard({
 
       {/* Warning if tires not set */}
       {(!bike.tires.front || !bike.tires.rear) && (
-        <p className="mt-2 text-xs text-amber-600">
-          Enter tire specs for calibration
-        </p>
+        <p className="mt-2 text-xs text-amber-600">Enter tire specs for calibration</p>
       )}
     </div>
   );

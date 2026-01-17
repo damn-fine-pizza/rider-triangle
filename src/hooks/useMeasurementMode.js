@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Hook to manage measurement mode (Photo vs Manual) per bike.
@@ -17,15 +17,18 @@ export function useMeasurementMode() {
    * Set mode for a bike
    */
   const setMode = useCallback((bikeKey, mode) => {
-    setModes(prev => ({ ...prev, [bikeKey]: mode }));
+    setModes((prev) => ({ ...prev, [bikeKey]: mode }));
   }, []);
 
   /**
    * Get mode for a bike (default: 'photo')
    */
-  const getMode = useCallback((bikeKey) => {
-    return modes[bikeKey] || 'photo';
-  }, [modes]);
+  const getMode = useCallback(
+    (bikeKey) => {
+      return modes[bikeKey] || 'photo';
+    },
+    [modes]
+  );
 
   /**
    * Set a manual measurement for a bike
@@ -38,7 +41,7 @@ export function useMeasurementMode() {
    * - seatToBarVertical: vertical drop from seat to bar (bar lower = positive)
    */
   const setMeasurement = useCallback((bikeKey, field, value) => {
-    setManualMeasurements(prev => ({
+    setManualMeasurements((prev) => ({
       ...prev,
       [bikeKey]: {
         ...prev[bikeKey],
@@ -50,9 +53,12 @@ export function useMeasurementMode() {
   /**
    * Get manual measurements for a bike
    */
-  const getMeasurements = useCallback((bikeKey) => {
-    return manualMeasurements[bikeKey] || {};
-  }, [manualMeasurements]);
+  const getMeasurements = useCallback(
+    (bikeKey) => {
+      return manualMeasurements[bikeKey] || {};
+    },
+    [manualMeasurements]
+  );
 
   /**
    * Calculate derived marker positions from manual measurements.
@@ -63,97 +69,114 @@ export function useMeasurementMode() {
    * - X increases to the right (forward on bike)
    * - Y increases downward
    */
-  const getVirtualMarkers = useCallback((bikeKey) => {
-    const m = manualMeasurements[bikeKey];
-    if (!m) return null;
+  const getVirtualMarkers = useCallback(
+    (bikeKey) => {
+      const m = manualMeasurements[bikeKey];
+      if (!m) return null;
 
-    const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } = m;
+      const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } = m;
 
-    // Need at least peg and bar positions relative to seat
-    if (seatToPegHorizontal == null || seatToPegVertical == null ||
-        seatToBarHorizontal == null || seatToBarVertical == null) {
-      return null;
-    }
+      // Need at least peg and bar positions relative to seat
+      if (
+        seatToPegHorizontal == null ||
+        seatToPegVertical == null ||
+        seatToBarHorizontal == null ||
+        seatToBarVertical == null
+      ) {
+        return null;
+      }
 
-    // Virtual coordinate system (arbitrary origin, consistent scale)
-    // Seat at origin
-    const seat = { x: 500, y: 300 };
+      // Virtual coordinate system (arbitrary origin, consistent scale)
+      // Seat at origin
+      const seat = { x: 500, y: 300 };
 
-    // Peg is behind (negative X) and below (positive Y) seat
-    const peg = {
-      x: seat.x - seatToPegHorizontal,
-      y: seat.y + seatToPegVertical,
-    };
+      // Peg is behind (negative X) and below (positive Y) seat
+      const peg = {
+        x: seat.x - seatToPegHorizontal,
+        y: seat.y + seatToPegVertical,
+      };
 
-    // Bar is in front (positive X) and above or below seat
-    const bar = {
-      x: seat.x + seatToBarHorizontal,
-      y: seat.y - seatToBarVertical, // negative because bar is typically above or at seat level
-    };
+      // Bar is in front (positive X) and above or below seat
+      const bar = {
+        x: seat.x + seatToBarHorizontal,
+        y: seat.y - seatToBarVertical, // negative because bar is typically above or at seat level
+      };
 
-    return { seat, peg, bar };
-  }, [manualMeasurements]);
+      return { seat, peg, bar };
+    },
+    [manualMeasurements]
+  );
 
   /**
    * Get distances in mm from manual measurements.
    * These are calculated directly from inputs, not from virtual markers.
    */
-  const getDistances = useCallback((bikeKey) => {
-    const m = manualMeasurements[bikeKey];
-    if (!m) return { seatPeg: null, seatBar: null, pegBar: null };
+  const getDistances = useCallback(
+    (bikeKey) => {
+      const m = manualMeasurements[bikeKey];
+      if (!m) return { seatPeg: null, seatBar: null, pegBar: null };
 
-    const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } = m;
+      const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } = m;
 
-    let seatPeg = null;
-    let seatBar = null;
-    let pegBar = null;
+      let seatPeg = null;
+      let seatBar = null;
+      let pegBar = null;
 
-    // Calculate seat-peg distance (hypotenuse)
-    if (seatToPegHorizontal != null && seatToPegVertical != null) {
-      seatPeg = Math.hypot(seatToPegHorizontal, seatToPegVertical);
-    }
+      // Calculate seat-peg distance (hypotenuse)
+      if (seatToPegHorizontal != null && seatToPegVertical != null) {
+        seatPeg = Math.hypot(seatToPegHorizontal, seatToPegVertical);
+      }
 
-    // Calculate seat-bar distance (hypotenuse)
-    if (seatToBarHorizontal != null && seatToBarVertical != null) {
-      seatBar = Math.hypot(seatToBarHorizontal, seatToBarVertical);
-    }
+      // Calculate seat-bar distance (hypotenuse)
+      if (seatToBarHorizontal != null && seatToBarVertical != null) {
+        seatBar = Math.hypot(seatToBarHorizontal, seatToBarVertical);
+      }
 
-    // Calculate peg-bar distance
-    if (seatToPegHorizontal != null && seatToPegVertical != null &&
-        seatToBarHorizontal != null && seatToBarVertical != null) {
-      const pegToBarH = seatToPegHorizontal + seatToBarHorizontal;
-      const pegToBarV = seatToPegVertical + seatToBarVertical;
-      pegBar = Math.hypot(pegToBarH, pegToBarV);
-    }
+      // Calculate peg-bar distance
+      if (
+        seatToPegHorizontal != null &&
+        seatToPegVertical != null &&
+        seatToBarHorizontal != null &&
+        seatToBarVertical != null
+      ) {
+        const pegToBarH = seatToPegHorizontal + seatToBarHorizontal;
+        const pegToBarV = seatToPegVertical + seatToBarVertical;
+        pegBar = Math.hypot(pegToBarH, pegToBarV);
+      }
 
-    return { seatPeg, seatBar, pegBar };
-  }, [manualMeasurements]);
+      return { seatPeg, seatBar, pegBar };
+    },
+    [manualMeasurements]
+  );
 
   /**
    * Check if manual measurements are complete for a bike
    */
-  const isComplete = useCallback((bikeKey) => {
-    const m = manualMeasurements[bikeKey];
-    if (!m) return false;
+  const isComplete = useCallback(
+    (bikeKey) => {
+      const m = manualMeasurements[bikeKey];
+      if (!m) return false;
 
-    return (
-      m.seatToPegHorizontal != null &&
-      m.seatToPegVertical != null &&
-      m.seatToBarHorizontal != null &&
-      m.seatToBarVertical != null
-    );
-  }, [manualMeasurements]);
+      return (
+        m.seatToPegHorizontal != null &&
+        m.seatToPegVertical != null &&
+        m.seatToBarHorizontal != null &&
+        m.seatToBarVertical != null
+      );
+    },
+    [manualMeasurements]
+  );
 
   /**
    * Reset measurements for a bike
    */
   const resetBike = useCallback((bikeKey) => {
-    setModes(prev => {
+    setModes((prev) => {
       const next = { ...prev };
       delete next[bikeKey];
       return next;
     });
-    setManualMeasurements(prev => {
+    setManualMeasurements((prev) => {
       const next = { ...prev };
       delete next[bikeKey];
       return next;

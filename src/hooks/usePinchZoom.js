@@ -1,19 +1,20 @@
 import { useState, useCallback, useRef } from 'react';
+import { ZOOM } from '../constants';
 
 /**
  * Hook for pinch-to-zoom and pan gestures on touch devices.
  * Optimized for performance using refs for intermediate state.
  *
  * @param {Object} options
- * @param {number} options.minScale - Minimum zoom level (default 0.5)
- * @param {number} options.maxScale - Maximum zoom level (default 3)
+ * @param {number} options.minScale - Minimum zoom level
+ * @param {number} options.maxScale - Maximum zoom level
  * @param {React.RefObject} options.containerRef - Ref to the zoomable container
  * @returns {Object} - { scale, position, handlers, resetZoom, isGesturing }
  */
 export function usePinchZoom({
-  minScale = 0.5,
-  maxScale = 4,
-  containerRef,
+  minScale = ZOOM.MIN_SCALE,
+  maxScale = ZOOM.MAX_SCALE,
+  containerRef: _containerRef, // Kept for potential future use
 } = {}) {
   // Final state (triggers re-render only when gesture ends)
   const [scale, setScale] = useState(1);
@@ -41,8 +42,7 @@ export function usePinchZoom({
     positionRef.current = newPosition;
 
     if (transformRef.current) {
-      transformRef.current.style.transform =
-        `translate(${newPosition.x}px, ${newPosition.y}px) scale(${newScale})`;
+      transformRef.current.style.transform = `translate(${newPosition.x}px, ${newPosition.y}px) scale(${newScale})`;
     }
   }, []);
 
@@ -54,71 +54,77 @@ export function usePinchZoom({
   }, []);
 
   // Handle touch start
-  const handleTouchStart = useCallback((e) => {
-    if (e.touches.length === 2) {
-      // Pinch gesture started
-      e.preventDefault();
-      const distance = getDistance(e.touches[0], e.touches[1]);
-      gestureState.current = {
-        ...gestureState.current,
-        isPinching: true,
-        isPanning: false,
-        initialDistance: distance,
-        initialScale: scaleRef.current,
-        initialPosition: { ...positionRef.current },
-      };
-      setIsGesturing(true);
-    } else if (e.touches.length === 1 && scaleRef.current > 1) {
-      // Pan gesture (only when zoomed in)
-      gestureState.current = {
-        ...gestureState.current,
-        isPanning: true,
-        isPinching: false,
-        startPanPos: {
-          x: e.touches[0].clientX - positionRef.current.x,
-          y: e.touches[0].clientY - positionRef.current.y,
-        },
-      };
-      setIsGesturing(true);
-    }
-  }, [getDistance]);
+  const handleTouchStart = useCallback(
+    (e) => {
+      if (e.touches.length === 2) {
+        // Pinch gesture started
+        e.preventDefault();
+        const distance = getDistance(e.touches[0], e.touches[1]);
+        gestureState.current = {
+          ...gestureState.current,
+          isPinching: true,
+          isPanning: false,
+          initialDistance: distance,
+          initialScale: scaleRef.current,
+          initialPosition: { ...positionRef.current },
+        };
+        setIsGesturing(true);
+      } else if (e.touches.length === 1 && scaleRef.current > 1) {
+        // Pan gesture (only when zoomed in)
+        gestureState.current = {
+          ...gestureState.current,
+          isPanning: true,
+          isPinching: false,
+          startPanPos: {
+            x: e.touches[0].clientX - positionRef.current.x,
+            y: e.touches[0].clientY - positionRef.current.y,
+          },
+        };
+        setIsGesturing(true);
+      }
+    },
+    [getDistance]
+  );
 
   // Handle touch move
-  const handleTouchMove = useCallback((e) => {
-    if (gestureState.current.isPinching && e.touches.length === 2) {
-      e.preventDefault();
-      const currentDistance = getDistance(e.touches[0], e.touches[1]);
-      const { initialDistance, initialScale, initialPosition } = gestureState.current;
+  const handleTouchMove = useCallback(
+    (e) => {
+      if (gestureState.current.isPinching && e.touches.length === 2) {
+        e.preventDefault();
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const { initialDistance, initialScale, initialPosition } = gestureState.current;
 
-      // Calculate new scale
-      const scaleChange = currentDistance / initialDistance;
-      let newScale = initialScale * scaleChange;
-      newScale = Math.max(minScale, Math.min(maxScale, newScale));
+        // Calculate new scale
+        const scaleChange = currentDistance / initialDistance;
+        let newScale = initialScale * scaleChange;
+        newScale = Math.max(minScale, Math.min(maxScale, newScale));
 
-      // Calculate center point for zoom
-      const center = {
-        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
-      };
+        // Calculate center point for zoom
+        const center = {
+          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        };
 
-      // Adjust position to keep zoom centered
-      const scaleDiff = newScale / initialScale;
-      const newPosition = {
-        x: center.x - (center.x - initialPosition.x) * scaleDiff,
-        y: center.y - (center.y - initialPosition.y) * scaleDiff,
-      };
+        // Adjust position to keep zoom centered
+        const scaleDiff = newScale / initialScale;
+        const newPosition = {
+          x: center.x - (center.x - initialPosition.x) * scaleDiff,
+          y: center.y - (center.y - initialPosition.y) * scaleDiff,
+        };
 
-      applyTransform(newScale, newPosition);
-    } else if (gestureState.current.isPanning && e.touches.length === 1) {
-      e.preventDefault();
-      const { startPanPos } = gestureState.current;
-      const newPosition = {
-        x: e.touches[0].clientX - startPanPos.x,
-        y: e.touches[0].clientY - startPanPos.y,
-      };
-      applyTransform(scaleRef.current, newPosition);
-    }
-  }, [getDistance, minScale, maxScale, applyTransform]);
+        applyTransform(newScale, newPosition);
+      } else if (gestureState.current.isPanning && e.touches.length === 1) {
+        e.preventDefault();
+        const { startPanPos } = gestureState.current;
+        const newPosition = {
+          x: e.touches[0].clientX - startPanPos.x,
+          y: e.touches[0].clientY - startPanPos.y,
+        };
+        applyTransform(scaleRef.current, newPosition);
+      }
+    },
+    [getDistance, minScale, maxScale, applyTransform]
+  );
 
   // Handle touch end - commit state
   const handleTouchEnd = useCallback((e) => {
@@ -148,34 +154,40 @@ export function usePinchZoom({
   }, [applyTransform]);
 
   // Wheel zoom for desktop
-  const handleWheel = useCallback((e) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.max(minScale, Math.min(maxScale, scaleRef.current * delta));
-      scaleRef.current = newScale;
-      setScale(newScale);
-      applyTransform(newScale, positionRef.current);
-    }
-  }, [minScale, maxScale, applyTransform]);
+  const handleWheel = useCallback(
+    (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? ZOOM.WHEEL_ZOOM_OUT : ZOOM.WHEEL_ZOOM_IN;
+        const newScale = Math.max(minScale, Math.min(maxScale, scaleRef.current * delta));
+        scaleRef.current = newScale;
+        setScale(newScale);
+        applyTransform(newScale, positionRef.current);
+      }
+    },
+    [minScale, maxScale, applyTransform]
+  );
 
   // Style object for the zoomable container (used for initial render)
   const zoomStyle = {
     transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
     transformOrigin: 'center center',
-    transition: isGesturing ? 'none' : 'transform 0.15s ease-out',
+    transition: isGesturing ? 'none' : `transform ${ZOOM.TRANSITION_DURATION_S}s ease-out`,
     willChange: isGesturing ? 'transform' : 'auto',
   };
 
   // Ref callback to capture the transform element
-  const setTransformRef = useCallback((el) => {
-    transformRef.current = el;
-    if (el) {
-      // Sync ref values with current state
-      scaleRef.current = scale;
-      positionRef.current = position;
-    }
-  }, [scale, position]);
+  const setTransformRef = useCallback(
+    (el) => {
+      transformRef.current = el;
+      if (el) {
+        // Sync ref values with current state
+        scaleRef.current = scale;
+        positionRef.current = position;
+      }
+    },
+    [scale, position]
+  );
 
   // Combined handlers object
   const handlers = {
@@ -185,6 +197,10 @@ export function usePinchZoom({
     onWheel: handleWheel,
   };
 
+  // Getters for current ref values (avoid stale state during gestures)
+  const getCurrentScale = useCallback(() => scaleRef.current, []);
+  const getCurrentPosition = useCallback(() => ({ ...positionRef.current }), []);
+
   return {
     scale,
     position,
@@ -193,5 +209,7 @@ export function usePinchZoom({
     isGesturing,
     zoomStyle,
     setTransformRef,
+    getCurrentScale,
+    getCurrentPosition,
   };
 }

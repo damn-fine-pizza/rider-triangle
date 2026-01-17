@@ -46,10 +46,7 @@ export function ManualMeasurements({ bikeKey, measurementHook, bikeLabel, bikeCo
     <div className="space-y-3">
       {/* Mode selector */}
       <div className="flex items-center gap-2">
-        <div
-          className="w-3 h-3 rounded-full flex-shrink-0"
-          style={{ background: bikeColor }}
-        />
+        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: bikeColor }} />
         <span className="font-medium text-sm">{bikeLabel}</span>
         <div className="flex-1" />
         <div className="flex rounded overflow-hidden border border-[--border-color] text-xs">
@@ -116,17 +113,13 @@ export function ManualMeasurements({ bikeKey, measurementHook, bikeLabel, bikeCo
           )}
 
           {!isComplete && (
-            <div className="text-xs text-amber-600 mt-2">
-              Fill all fields to calculate angles
-            </div>
+            <div className="text-xs text-amber-600 mt-2">Fill all fields to calculate angles</div>
           )}
         </div>
       )}
 
       {mode === 'photo' && (
-        <div className="pl-5 text-xs text-muted">
-          Using photo-based calibration
-        </div>
+        <div className="pl-5 text-xs text-muted">Using photo-based calibration</div>
       )}
     </div>
   );
@@ -148,17 +141,20 @@ export function MeasurementDiagram() {
         {/* Handlebar */}
         <line x1={155} y1={40} x2={165} y2={55} />
       </g>
-
       {/* Measurement points */}
       <circle cx={100} cy={50} r={4} fill="#22c55e" /> {/* Seat */}
       <circle cx={60} cy={85} r={4} fill="#3b82f6" /> {/* Peg */}
       <circle cx={160} cy={45} r={4} fill="#f59e0b" /> {/* Bar */}
-
       {/* Labels */}
-      <text x={100} y={42} textAnchor="middle" fontSize={8} fill="#22c55e">Seat</text>
-      <text x={60} y={98} textAnchor="middle" fontSize={8} fill="#3b82f6">Peg</text>
-      <text x={160} y={38} textAnchor="middle" fontSize={8} fill="#f59e0b">Bar</text>
-
+      <text x={100} y={42} textAnchor="middle" fontSize={8} fill="#22c55e">
+        Seat
+      </text>
+      <text x={60} y={98} textAnchor="middle" fontSize={8} fill="#3b82f6">
+        Peg
+      </text>
+      <text x={160} y={38} textAnchor="middle" fontSize={8} fill="#f59e0b">
+        Bar
+      </text>
       {/* Dimension arrows */}
       <g stroke="#6b7280" strokeWidth={0.5} strokeDasharray="2 1">
         {/* Seat to Peg horizontal */}

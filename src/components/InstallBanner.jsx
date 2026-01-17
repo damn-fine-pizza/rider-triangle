@@ -1,16 +1,31 @@
 /**
+ * Get platform-specific install instructions when beforeinstallprompt isn't available.
+ */
+function getManualInstallInstructions(platform) {
+  if (platform.isFirefox) {
+    return 'Menu (☰) → More tools → Customize toolbar → Add to toolbar';
+  }
+  if (platform.isSafari && !platform.isMobile) {
+    return 'File → Add to Dock (macOS Sonoma+)';
+  }
+  if (platform.isEdge) {
+    return 'Click install icon (⊕) in address bar';
+  }
+  if (platform.isChrome) {
+    return 'Click install icon (⊕) in address bar';
+  }
+  return 'Use your browser menu to install this app';
+}
+
+/**
  * PWA Install Banner component.
  *
  * Shows platform-specific installation instructions:
  * - Android/Chrome: "Install" button that triggers beforeinstallprompt
  * - iOS Safari: Instructions to use Share → Add to Home Screen
+ * - Desktop browsers: Manual installation instructions
  */
-export function InstallBanner({
-  platform,
-  canPrompt,
-  onInstall,
-  onDismiss,
-}) {
+export function InstallBanner({ platform, canPrompt, onInstall, onDismiss }) {
   if (platform.isIOS) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-[--bg-card] border-t border-[--border-color] shadow-lg safe-area-bottom">
@@ -29,7 +44,7 @@ export function InstallBanner({
               <span className="inline-flex items-center">
                 <ShareIcon className="w-4 h-4 mx-0.5" />
               </span>{' '}
-              then "Add to Home Screen"
+              then &ldquo;Add to Home Screen&rdquo;
             </p>
           </div>
 
@@ -46,7 +61,10 @@ export function InstallBanner({
     );
   }
 
-  // Android / Chrome / other browsers with beforeinstallprompt support
+  // Android / Chrome / other browsers
+  const showInstallButton = canPrompt;
+  const manualInstructions = !canPrompt ? getManualInstallInstructions(platform) : null;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-[--bg-card] border-t border-[--border-color] shadow-lg">
       <div className="flex items-center gap-3 max-w-xl mx-auto">
@@ -59,22 +77,18 @@ export function InstallBanner({
 
         <div className="flex-1 min-w-0">
           <div className="font-medium text-primary">Install Rider Triangle</div>
-          <p className="text-sm text-muted">Add to home screen for quick access</p>
+          <p className="text-sm text-muted">
+            {manualInstructions || 'Add to home screen for quick access'}
+          </p>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={onDismiss}
-            className="px-3 py-1.5 text-sm text-muted hover:text-primary"
-          >
+          <button onClick={onDismiss} className="px-3 py-1.5 text-sm text-muted hover:text-primary">
             Not now
           </button>
-          {canPrompt && (
-            <button
-              onClick={onInstall}
-              className="btn-primary text-sm"
-            >
+          {showInstallButton && (
+            <button onClick={onInstall} className="btn-primary text-sm">
               Install
             </button>
           )}
@@ -106,12 +120,7 @@ function ShareIcon({ className }) {
 function CloseIcon({ className }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M6 18L18 6M6 6l12 12"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }

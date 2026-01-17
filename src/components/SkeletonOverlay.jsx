@@ -98,7 +98,7 @@ export function SkeletonOverlay({
   color = '#6b7280',
   ridingStyle = 'commute',
   showAngles = true,
-  scale = 1,
+  scale: _scale = 1,
 }) {
   const joints = useMemo(() => {
     return calculateSkeletonJoints(markers, measurements, pxPerMM);

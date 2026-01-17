@@ -78,7 +78,7 @@ export function estimateStorageUsage() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? new Blob([saved]).size : 0;
-  } catch (e) {
+  } catch {
     return 0;
   }
 }

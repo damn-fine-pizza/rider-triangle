@@ -6,13 +6,15 @@ const ONBOARDING_STEPS = [
   {
     id: 'welcome',
     title: 'Welcome to Rider Triangle',
-    message: 'Compare motorcycle riding positions by overlaying bike photos and analyzing ergonomic angles.',
+    message:
+      'Compare motorcycle riding positions by overlaying bike photos and analyzing ergonomic angles.',
     highlight: null,
   },
   {
     id: 'bikes',
     title: 'Step 1: Select Your Bikes',
-    message: 'Use "Manage bikes" to upload your own bike photos, or use the default bikes to start.',
+    message:
+      'Use "Manage bikes" to upload your own bike photos, or use the default bikes to start.',
     highlight: 'bikes',
   },
   {
@@ -24,7 +26,8 @@ const ONBOARDING_STEPS = [
   {
     id: 'points',
     title: 'Step 3: Click on the Image',
-    message: 'Click to place calibration points (wheel TOP/BOTTOM, axle) then the rider triangle (seat, footpeg, handlebar).',
+    message:
+      'Click to place calibration points (wheel TOP/BOTTOM, axle) then the rider triangle (seat, footpeg, handlebar).',
     highlight: 'tools',
   },
   {
@@ -36,7 +39,8 @@ const ONBOARDING_STEPS = [
   {
     id: 'results',
     title: 'Step 5: View Results',
-    message: 'See your ergonomic angles with color-coded comfort zones. Export or share your comparison!',
+    message:
+      'See your ergonomic angles with color-coded comfort zones. Export or share your comparison!',
     highlight: 'angles',
   },
 ];

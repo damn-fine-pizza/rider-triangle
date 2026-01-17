@@ -3,19 +3,19 @@ import { getImageUrl } from './imageProvider';
 // Static bike data (without image URLs)
 const BIKES_DATA = {
   vstrom: {
-    label: "V-Strom 1050 SE",
-    color: "#ef6c00",
+    label: 'V-Strom 1050 SE',
+    color: '#ef6c00',
     tires: {
-      front: "110/80 R19",
-      rear: "150/70 R17",
+      front: '110/80 R19',
+      rear: '150/70 R17',
     },
   },
   gsx: {
-    label: "GSX-S1000GX",
-    color: "#1976d2",
+    label: 'GSX-S1000GX',
+    color: '#1976d2',
     tires: {
-      front: "120/70 ZR17M/C",
-      rear: "190/50 ZR17M/C",
+      front: '120/70 ZR17M/C',
+      rear: '190/50 ZR17M/C',
     },
   },
 };

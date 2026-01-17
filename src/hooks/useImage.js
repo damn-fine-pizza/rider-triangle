@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
  * @param {string} src - Image source URL
  * @returns {{ ref: React.RefObject, size: { w: number, h: number }, onLoad: Function }}
  */
-export function useImage(src) {
+export function useImage(_src) {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const ref = useRef(null);
   return {

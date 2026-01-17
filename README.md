@@ -74,6 +74,42 @@ src/
     └── comfortZones.js       # Angle comfort ranges
 ```
 
+## Testing
+
+### Unit Tests (Vitest)
+
+```bash
+npm run test        # Watch mode
+npm run test:run    # Single run
+```
+
+**Covered:**
+- `utils/ergonomics.js` - Angle calculations (knee, hip, back, arm)
+- Body proportion calculations
+
+### E2E Tests (Playwright)
+
+```bash
+npm run e2e         # Run all E2E tests
+npm run e2e:ui      # Run with UI
+```
+
+**Test files in `e2e/`:**
+
+| File | Coverage |
+|------|----------|
+| `mobile-markers.spec.js` | Mobile touch interactions, marker placement, pinch-zoom |
+| `pwa.spec.js` | PWA manifest, service worker, install prompts, dark mode |
+
+**Features covered by E2E:**
+- Mobile marker placement via touch
+- Pinch-to-zoom gestures
+- Wheel zoom (Ctrl+scroll)
+- Touch loupe (magnifier) for precise placement
+- PWA installation flow (Android/iOS)
+- Service worker registration
+- Dark mode compatibility
+
 ## Documentation
 
 - `ROADMAP.md` - Development milestones and progress

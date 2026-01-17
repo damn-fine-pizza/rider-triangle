@@ -138,19 +138,28 @@ export function useRiderProfile() {
   }, []);
 
   // Clear an override (use estimated value)
-  const clearOverride = useCallback((key) => {
-    setOverride(key, null);
-  }, [setOverride]);
+  const clearOverride = useCallback(
+    (key) => {
+      setOverride(key, null);
+    },
+    [setOverride]
+  );
 
   // Set seat position
-  const setSeatPosition = useCallback((position) => {
-    updateProfile({ seatPosition: position });
-  }, [updateProfile]);
+  const setSeatPosition = useCallback(
+    (position) => {
+      updateProfile({ seatPosition: position });
+    },
+    [updateProfile]
+  );
 
   // Set height
-  const setHeight = useCallback((heightCm) => {
-    updateProfile({ heightCm: Math.max(100, Math.min(250, heightCm)) });
-  }, [updateProfile]);
+  const setHeight = useCallback(
+    (heightCm) => {
+      updateProfile({ heightCm: Math.max(100, Math.min(250, heightCm)) });
+    },
+    [updateProfile]
+  );
 
   // Set active profile
   const setActiveProfile = useCallback((id) => {

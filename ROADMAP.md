@@ -640,6 +640,32 @@ Riders don't stay in one position. This milestone adds:
 
 ---
 
+## Test Coverage
+
+Features are mapped to tests following TDD principles.
+
+### Unit Tests (`src/utils/*.test.js`)
+
+| Feature | Test File | Coverage |
+|---------|-----------|----------|
+| Angle calculations | `ergonomics.test.js` | Knee, hip, back, arm angles |
+
+### E2E Tests (`e2e/`)
+
+| Feature | Test File | Coverage |
+|---------|-----------|----------|
+| PWA install (Android) | `pwa.spec.js` | beforeinstallprompt, manifest, SW |
+| PWA install (iOS) | `pwa.spec.js` | Share icon guidance |
+| Service worker | `pwa.spec.js` | Registration, caching |
+| Dark mode | `pwa.spec.js` | CSS variables |
+| Mobile touch | `mobile-markers.spec.js` | Tap marker placement |
+| Pinch-zoom | `mobile-markers.spec.js` | Gesture recognition, scale |
+| Wheel zoom | `mobile-markers.spec.js` | Ctrl+scroll |
+| Touch loupe | `mobile-markers.spec.js` | Long-press magnifier |
+| Marker after zoom | `mobile-markers.spec.js` | Coordinate calculation fix |
+
+---
+
 ## Technical Notes
 
 ### Photo Accuracy Disclaimer

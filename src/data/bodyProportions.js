@@ -10,24 +10,24 @@
 // Sources: NASA-STD-3000, Dreyfuss Associates, ANSUR II
 export const BODY_RATIOS = {
   // Leg measurements
-  inseam: 0.47,           // Floor to crotch (leg length)
-  thigh: 0.245,           // Crotch to knee center
-  lowerLeg: 0.225,        // Knee center to ankle
+  inseam: 0.47, // Floor to crotch (leg length)
+  thigh: 0.245, // Crotch to knee center
+  lowerLeg: 0.225, // Knee center to ankle
 
   // Torso measurements
-  torso: 0.30,            // Crotch to shoulder
-  sittingHeight: 0.52,    // Floor to top of head when seated
+  torso: 0.3, // Crotch to shoulder
+  sittingHeight: 0.52, // Floor to top of head when seated
 
   // Arm measurements
-  armLength: 0.44,        // Shoulder to fingertip
-  upperArm: 0.186,        // Shoulder to elbow
-  forearm: 0.146,         // Elbow to wrist
-  hand: 0.108,            // Wrist to fingertip
+  armLength: 0.44, // Shoulder to fingertip
+  upperArm: 0.186, // Shoulder to elbow
+  forearm: 0.146, // Elbow to wrist
+  hand: 0.108, // Wrist to fingertip
 
   // Other useful measurements
-  shoulderWidth: 0.26,    // Bideltoid breadth
-  hipWidth: 0.17,         // Hip breadth
-  footLength: 0.15,       // Heel to toe
+  shoulderWidth: 0.26, // Bideltoid breadth
+  hipWidth: 0.17, // Hip breadth
+  footLength: 0.15, // Heel to toe
 };
 
 /**
@@ -57,7 +57,7 @@ export function estimateFromHeight(heightCm) {
  */
 export const DEFAULT_RIDER = {
   name: 'Default Rider',
-  heightCm: 175,  // Average adult height
+  heightCm: 175, // Average adult height
   // Individual overrides (null = use estimated)
   overrides: {
     inseam: null,
@@ -65,7 +65,7 @@ export const DEFAULT_RIDER = {
     armLength: null,
   },
   // Seat position affects hip angle calculation
-  seatPosition: 'center',  // 'forward', 'center', 'back'
+  seatPosition: 'center', // 'forward', 'center', 'back'
 };
 
 /**

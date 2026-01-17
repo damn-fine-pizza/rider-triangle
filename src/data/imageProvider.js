@@ -10,8 +10,8 @@
  */
 
 const EXTERNAL_URLS = {
-  vstrom: "https://moto.suzuki.it/modelli/360/v-strom-1050SE/img/data/grade1/color1/19.jpg",
-  gsx: "https://moto.suzuki.it/modelli/360/gsx-s1000gx/img/data/grade1/color1/19.jpg",
+  vstrom: 'https://moto.suzuki.it/modelli/360/v-strom-1050SE/img/data/grade1/color1/19.jpg',
+  gsx: 'https://moto.suzuki.it/modelli/360/gsx-s1000gx/img/data/grade1/color1/19.jpg',
 };
 
 // Current provider: external URLs

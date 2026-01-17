@@ -145,21 +145,24 @@ export function useBikeStore() {
   }, []);
 
   // Update bike image
-  const updateBikeImage = useCallback(async (id, file) => {
-    // Compress image before storing
-    const img = await compressImage(file);
+  const updateBikeImage = useCallback(
+    async (id, file) => {
+      // Compress image before storing
+      const img = await compressImage(file);
 
-    // Store in IndexedDB if supported
-    if (imageDB.isSupported()) {
-      try {
-        await imageDB.setItem(`img_${id}`, img);
-      } catch (e) {
-        console.warn('IndexedDB storage failed, using inline:', e);
+      // Store in IndexedDB if supported
+      if (imageDB.isSupported()) {
+        try {
+          await imageDB.setItem(`img_${id}`, img);
+        } catch (e) {
+          console.warn('IndexedDB storage failed, using inline:', e);
+        }
       }
-    }
 
-    updateBike(id, { img });
-  }, [updateBike]);
+      updateBike(id, { img });
+    },
+    [updateBike]
+  );
 
   // Update bike tire spec
   const updateBikeTire = useCallback((id, wheel, spec) => {

@@ -18,11 +18,7 @@ export function OnboardingOverlay({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={onSkip}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onSkip} aria-hidden="true" />
 
       {/* Modal */}
       <div
@@ -52,26 +48,17 @@ export function OnboardingOverlay({
 
             {/* Navigation */}
             <div className="flex items-center justify-between">
-              <button
-                onClick={onSkip}
-                className="text-sm text-muted hover:text-primary"
-              >
+              <button onClick={onSkip} className="text-sm text-muted hover:text-primary">
                 Skip tutorial
               </button>
 
               <div className="flex gap-2">
                 {!isFirstStep && (
-                  <button
-                    onClick={onPrev}
-                    className="btn-secondary"
-                  >
+                  <button onClick={onPrev} className="btn-secondary">
                     Back
                   </button>
                 )}
-                <button
-                  onClick={onNext}
-                  className="btn-primary"
-                >
+                <button onClick={onNext} className="btn-primary">
                   {isLastStep ? 'Get Started' : 'Next'}
                 </button>
               </div>
@@ -101,7 +88,12 @@ export function OnboardingTip({ title, message, onDismiss }) {
             aria-label="Dismiss tip"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}

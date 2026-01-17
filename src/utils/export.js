@@ -132,7 +132,7 @@ export function getSavedSessions() {
   try {
     const stored = localStorage.getItem('rider-triangle-sessions');
     return stored ? JSON.parse(stored) : {};
-  } catch (e) {
+  } catch {
     return {};
   }
 }

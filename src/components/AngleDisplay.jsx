@@ -80,9 +80,7 @@ function AngleComparisonTable({ anglesA, anglesB, labelA, labelB, colorA, colorB
           const zoneB = getAngleZone(type, valB, ridingStyle);
 
           const delta =
-            valA !== null && valB !== null && !isNaN(valA) && !isNaN(valB)
-              ? valB - valA
-              : null;
+            valA !== null && valB !== null && !isNaN(valA) && !isNaN(valB) ? valB - valA : null;
 
           return (
             <tr key={type} className="border-b border-[--border-color]">
@@ -99,7 +97,9 @@ function AngleComparisonTable({ anglesA, anglesB, labelA, labelB, colorA, colorB
               </td>
               <td className="py-1.5 text-right font-mono text-xs">
                 {delta !== null ? (
-                  <span className={delta > 0 ? 'text-blue-600' : delta < 0 ? 'text-orange-600' : ''}>
+                  <span
+                    className={delta > 0 ? 'text-blue-600' : delta < 0 ? 'text-orange-600' : ''}
+                  >
                     {delta > 0 ? '+' : ''}
                     {delta.toFixed(0)}°
                   </span>
@@ -137,7 +137,10 @@ export function AngleDisplay({
   ridingStyle = 'commute',
   showComparison = false,
 }) {
-  const summary = useMemo(() => getAnglesSummary(angles || {}, ridingStyle), [angles, ridingStyle]);
+  const _summary = useMemo(
+    () => getAnglesSummary(angles || {}, ridingStyle),
+    [angles, ridingStyle]
+  );
 
   const hasAngles = angles && (angles.knee || angles.hip || angles.back || angles.arm);
 

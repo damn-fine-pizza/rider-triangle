@@ -20,6 +20,8 @@ import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
 import { SkeletonOverlay } from './components/SkeletonOverlay';
 import { CollapsiblePanel } from './components/CollapsiblePanel';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { TouchLoupe } from './components/TouchLoupe';
+import { TOOL_SEQUENCE, TOOL_LABELS, TOUCH, ZOOM, STAGE_MIN_HEIGHT_PX } from './constants';
 
 // Lazy load ExportButton (includes html2canvas which is heavy)
 const ExportButton = lazy(() =>
@@ -29,19 +31,6 @@ import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { InstallBanner } from './components/InstallBanner';
 import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
 import { hapticMedium, hapticSuccess } from './utils/haptics';
-
-// Tool sequence for auto-advance
-const TOOL_SEQUENCE = ['calibTop', 'calibBot', 'axle', 'seat', 'peg', 'bar'];
-
-// Tool labels
-const TOOL_LABELS = {
-  calibTop: 'Calib. TOP wheel',
-  calibBot: 'Calib. BOTTOM wheel',
-  axle: 'Rear axle center',
-  seat: 'Seat',
-  peg: 'Footpeg',
-  bar: 'Handlebar',
-};
 
 export default function App() {
   // Bike store for dynamic bike management
@@ -60,7 +49,7 @@ export default function App() {
   const [showBikes, setShowBikes] = useState(
     bikeKeys.reduce((acc, key) => ({ ...acc, [key]: true }), {})
   );
-  const [activeBike, setActiveBike] = useState(primaryBike);
+  const [activeBike, setActiveBike] = useState(null); // Synced by useEffect below
   const [activeTool, setActiveTool] = useState('calibTop');
   const [showBikeManager, setShowBikeManager] = useState(false);
   const [ridingStyle, setRidingStyle] = useState('commute');
@@ -128,8 +117,8 @@ export default function App() {
 
   // Pinch-zoom for mobile
   const pinchZoom = usePinchZoom({
-    minScale: 0.5,
-    maxScale: 4,
+    minScale: ZOOM.MIN_SCALE,
+    maxScale: ZOOM.MAX_SCALE,
     containerRef,
   });
 
@@ -137,6 +126,16 @@ export default function App() {
   const gestureInProgress = useRef(false);
   const touchStartTime = useRef(0);
   const touchStartPos = useRef({ x: 0, y: 0 });
+
+  // Touch loupe state (magnifying glass for precise touch placement)
+  const [loupeState, setLoupeState] = useState({
+    visible: false,
+    touchX: 0,
+    touchY: 0,
+    bikeKey: null,
+    containerRect: null,
+  });
+  const loupeTimerRef = useRef(null);
 
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
@@ -151,6 +150,7 @@ export default function App() {
     if (primaryBike && (!activeBike || !bikeKeys.includes(activeBike))) {
       setActiveBike(primaryBike);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bikeKeys, primaryBike]);
 
   // Calculate ergonomic angles for each bike
@@ -180,7 +180,13 @@ export default function App() {
     });
 
     return result;
-  }, [bikeKeys, markersHook.markers, calibration.pxPerMM, riderProfile.measurements, measurementMode]);
+  }, [
+    bikeKeys,
+    markersHook.markers,
+    calibration.pxPerMM,
+    riderProfile.measurements,
+    measurementMode,
+  ]);
 
   // Auto-advance to next tool
   const advanceToNextTool = useCallback(() => {
@@ -216,8 +222,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [bikeKeys, activeBike]);
 
-  // Extract coordinates from mouse or touch event
-  const getEventCoordinates = useCallback((e) => {
+  // Extract coordinates from mouse or touch event (utility, kept for future use)
+  const _getEventCoordinates = useCallback((e) => {
     // Touch event (changedTouches for touchend, touches for touchstart/move)
     if (e.changedTouches && e.changedTouches.length > 0) {
       return {
@@ -245,9 +251,12 @@ export default function App() {
       let y = clientY - rect.top;
 
       // Account for pinch-zoom scale and position
-      if (pinchZoom.scale !== 1) {
-        x = (x - pinchZoom.position.x) / pinchZoom.scale;
-        y = (y - pinchZoom.position.y) / pinchZoom.scale;
+      // Use getter functions to get current ref values (not stale state)
+      const currentScale = pinchZoom.getCurrentScale();
+      const currentPos = pinchZoom.getCurrentPosition();
+      if (currentScale !== 1) {
+        x = (x - currentPos.x) / currentScale;
+        y = (y - currentPos.y) / currentScale;
       }
 
       // For overlay bike, convert from visual (scaled) to local coordinates
@@ -278,85 +287,174 @@ export default function App() {
         advanceToNextTool();
       }
     },
-    [activeTool, calibration, markersHook, advanceToNextTool, primaryBike, pinchZoom.scale, pinchZoom.position]
+    [activeTool, calibration, markersHook, advanceToNextTool, primaryBike, pinchZoom]
   );
 
-  // Handle touch start - record for tap detection and init panning
-  const handleTouchStart = useCallback((e, bikeKey) => {
-    if (e.touches.length === 1) {
-      // Single finger - potential tap OR pan (if zoomed)
-      touchStartTime.current = Date.now();
-      touchStartPos.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-      gestureInProgress.current = false;
+  // Handle touch start - record for tap detection, init panning, and start loupe timer
+  const handleTouchStart = useCallback(
+    (e, bikeKey) => {
+      // Clear any existing loupe timer
+      if (loupeTimerRef.current) {
+        clearTimeout(loupeTimerRef.current);
+        loupeTimerRef.current = null;
+      }
 
-      // If zoomed in, initialize panning state
-      if (pinchZoom.scale > 1) {
+      if (e.touches.length === 1) {
+        // Single finger - potential tap OR pan (if zoomed)
+        const touch = e.touches[0];
+        touchStartTime.current = Date.now();
+        touchStartPos.current = {
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+        gestureInProgress.current = false;
+
+        // If zoomed in, initialize panning state
+        if (pinchZoom.scale > 1) {
+          pinchZoom.handlers.onTouchStart(e);
+        }
+
+        // Start loupe timer for long press (only if this is the active bike)
+        if (bikeKey === activeBike) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          loupeTimerRef.current = setTimeout(() => {
+            setLoupeState({
+              visible: true,
+              touchX: touch.clientX - rect.left,
+              touchY: touch.clientY - rect.top,
+              bikeKey,
+              containerRect: rect,
+            });
+          }, TOUCH.LOUPE_DELAY_MS);
+        }
+      } else if (e.touches.length === 2) {
+        // Multi-touch - pinch gesture, cancel loupe
+        gestureInProgress.current = true;
+        setLoupeState((s) => ({ ...s, visible: false }));
         pinchZoom.handlers.onTouchStart(e);
       }
-    } else if (e.touches.length === 2) {
-      // Multi-touch - pinch gesture
-      gestureInProgress.current = true;
-      pinchZoom.handlers.onTouchStart(e);
-    }
-  }, [pinchZoom.handlers, pinchZoom.scale]);
+    },
+    [pinchZoom.handlers, pinchZoom.scale, activeBike]
+  );
 
-  // Handle touch move - detect if it's a gesture or pan
-  const handleTouchMove = useCallback((e) => {
-    if (e.touches.length >= 2) {
-      gestureInProgress.current = true;
-      pinchZoom.handlers.onTouchMove(e);
-    } else if (e.touches.length === 1) {
-      const dx = Math.abs(e.touches[0].clientX - touchStartPos.current.x);
-      const dy = Math.abs(e.touches[0].clientY - touchStartPos.current.y);
-
-      // If zoomed in and finger moved, it's a pan gesture
-      if (pinchZoom.scale > 1 && (dx > 5 || dy > 5)) {
+  // Handle touch move - detect if it's a gesture or pan, update loupe position
+  const handleTouchMove = useCallback(
+    (e) => {
+      if (e.touches.length >= 2) {
+        // Multi-touch - cancel loupe
+        if (loupeTimerRef.current) {
+          clearTimeout(loupeTimerRef.current);
+          loupeTimerRef.current = null;
+        }
+        setLoupeState((s) => ({ ...s, visible: false }));
         gestureInProgress.current = true;
         pinchZoom.handlers.onTouchMove(e);
-      } else if (dx > 10 || dy > 10) {
-        // Moved significantly but not zoomed - mark as gesture to prevent marker placement
-        gestureInProgress.current = true;
+      } else if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+        const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+
+        // If zoomed in and finger moved, it's a pan gesture - cancel loupe
+        if (pinchZoom.scale > 1 && (dx > TOUCH.PAN_THRESHOLD_PX || dy > TOUCH.PAN_THRESHOLD_PX)) {
+          if (loupeTimerRef.current) {
+            clearTimeout(loupeTimerRef.current);
+            loupeTimerRef.current = null;
+          }
+          setLoupeState((s) => ({ ...s, visible: false }));
+          gestureInProgress.current = true;
+          pinchZoom.handlers.onTouchMove(e);
+        } else if (loupeState.visible) {
+          // Loupe is showing - update its position to follow finger
+          setLoupeState((s) => ({
+            ...s,
+            touchX: touch.clientX - (s.containerRect?.left || 0),
+            touchY: touch.clientY - (s.containerRect?.top || 0),
+          }));
+        } else if (dx > TOUCH.TAP_MAX_MOVEMENT_PX || dy > TOUCH.TAP_MAX_MOVEMENT_PX) {
+          // Moved significantly but not zoomed - cancel loupe and mark as gesture
+          if (loupeTimerRef.current) {
+            clearTimeout(loupeTimerRef.current);
+            loupeTimerRef.current = null;
+          }
+          gestureInProgress.current = true;
+        }
       }
-    }
-  }, [pinchZoom.handlers, pinchZoom.scale]);
+    },
+    [pinchZoom.handlers, pinchZoom.scale, loupeState.visible]
+  );
 
-  // Handle touch end - place marker if it was a tap
-  const handleTouchEnd = useCallback((e, bikeKey) => {
-    pinchZoom.handlers.onTouchEnd(e);
+  // Handle touch end - place marker (from loupe position or quick tap)
+  const handleTouchEnd = useCallback(
+    (e, bikeKey) => {
+      // Clear loupe timer
+      if (loupeTimerRef.current) {
+        clearTimeout(loupeTimerRef.current);
+        loupeTimerRef.current = null;
+      }
 
-    // Only place marker if:
-    // 1. Active bike matches
-    // 2. It was a short tap (< 300ms)
-    // 3. Finger didn't move much (< 10px)
-    // 4. No multi-touch gesture in progress
-    if (bikeKey !== activeBike) return;
-    if (gestureInProgress.current) return;
+      pinchZoom.handlers.onTouchEnd(e);
 
-    const tapDuration = Date.now() - touchStartTime.current;
-    if (tapDuration > 300) return;
+      // Only place marker if active bike matches and no gesture in progress
+      if (bikeKey !== activeBike) {
+        setLoupeState((s) => ({ ...s, visible: false }));
+        return;
+      }
+      if (gestureInProgress.current) {
+        setLoupeState((s) => ({ ...s, visible: false }));
+        return;
+      }
 
-    const touch = e.changedTouches[0];
-    if (!touch) return;
+      const touch = e.changedTouches[0];
+      if (!touch) {
+        setLoupeState((s) => ({ ...s, visible: false }));
+        return;
+      }
 
-    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
-    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
-    if (dx > 10 || dy > 10) return;
+      const rect = e.currentTarget.getBoundingClientRect();
 
-    // It's a valid tap - place marker
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    placeMarker(bikeKey, touch.clientX, touch.clientY, rect);
-  }, [activeBike, pinchZoom.handlers, placeMarker]);
+      // If loupe was visible, use its tracked position for precise placement
+      if (loupeState.visible && loupeState.containerRect) {
+        e.preventDefault();
+        // Convert loupe position to clientX/clientY
+        const clientX = loupeState.touchX + loupeState.containerRect.left;
+        const clientY = loupeState.touchY + loupeState.containerRect.top;
+        placeMarker(bikeKey, clientX, clientY, rect);
+        setLoupeState((s) => ({ ...s, visible: false }));
+        return;
+      }
+
+      // Otherwise, check for quick tap
+      const tapDuration = Date.now() - touchStartTime.current;
+      if (tapDuration > TOUCH.TAP_MAX_DURATION_MS) return;
+
+      const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+      const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+      if (dx > TOUCH.TAP_MAX_MOVEMENT_PX || dy > TOUCH.TAP_MAX_MOVEMENT_PX) return;
+
+      // It's a valid quick tap - place marker
+      e.preventDefault();
+      placeMarker(bikeKey, touch.clientX, touch.clientY, rect);
+    },
+    [
+      activeBike,
+      pinchZoom.handlers,
+      placeMarker,
+      loupeState.visible,
+      loupeState.touchX,
+      loupeState.touchY,
+      loupeState.containerRect,
+    ]
+  );
 
   // Handle mouse click (desktop)
-  const handleMouseClick = useCallback((e, bikeKey) => {
-    if (bikeKey !== activeBike) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    placeMarker(bikeKey, e.clientX, e.clientY, rect);
-  }, [activeBike, placeMarker]);
+  const handleMouseClick = useCallback(
+    (e, bikeKey) => {
+      if (bikeKey !== activeBike) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      placeMarker(bikeKey, e.clientX, e.clientY, rect);
+    },
+    [activeBike, placeMarker]
+  );
 
   // Reset all for a bike
   const handleResetBike = useCallback(
@@ -601,9 +699,7 @@ export default function App() {
       {/* Header - improved mobile visibility */}
       <div className="mb-4">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <h1 className="text-xl sm:text-2xl font-semibold">
-            Riding Position Comparison
-          </h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">Riding Position Comparison</h1>
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* Dark mode toggle */}
             <button
@@ -614,11 +710,21 @@ export default function App() {
             >
               {isDark ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
                 </svg>
               ) : (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  />
                 </svg>
               )}
             </button>
@@ -629,7 +735,12 @@ export default function App() {
                 title="Show tutorial"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 Help
               </button>
@@ -739,7 +850,12 @@ export default function App() {
           </div>
 
           {/* Step 1: Wheel selection */}
-          <CollapsiblePanel title="Select wheel for calibration" stepNumber={1} isOpen={openPanels.wheel} onToggle={() => togglePanel('wheel')}>
+          <CollapsiblePanel
+            title="Select wheel for calibration"
+            stepNumber={1}
+            isOpen={openPanels.wheel}
+            onToggle={() => togglePanel('wheel')}
+          >
             {bikeKeys.map((key) => {
               const bike = activeBikes[key];
               if (!bike) return null;
@@ -757,14 +873,22 @@ export default function App() {
                   </div>
                   <div className="flex gap-2 text-sm">
                     <button
-                      className={calibration.wheelChoice[key] === 'front' ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
+                      className={
+                        calibration.wheelChoice[key] === 'front'
+                          ? 'btn-toggle-neutral-active'
+                          : 'btn-toggle-inactive'
+                      }
                       onClick={() => calibration.setWheel(key, 'front')}
                       disabled={!bike.tires?.front}
                     >
                       Front {bike.tires?.front ? `(${bike.tires.front})` : ''}
                     </button>
                     <button
-                      className={calibration.wheelChoice[key] === 'rear' ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
+                      className={
+                        calibration.wheelChoice[key] === 'rear'
+                          ? 'btn-toggle-neutral-active'
+                          : 'btn-toggle-inactive'
+                      }
                       onClick={() => calibration.setWheel(key, 'rear')}
                       disabled={!bike.tires?.rear}
                     >
@@ -787,7 +911,12 @@ export default function App() {
           </CollapsiblePanel>
 
           {/* Step 2: Tool selection */}
-          <CollapsiblePanel title="Select tool and click on the image" stepNumber={2} isOpen={openPanels.tool} onToggle={() => togglePanel('tool')}>
+          <CollapsiblePanel
+            title="Select tool and click on the image"
+            stepNumber={2}
+            isOpen={openPanels.tool}
+            onToggle={() => togglePanel('tool')}
+          >
             <div className="grid grid-cols-2 gap-2 text-sm">
               {TOOL_SEQUENCE.map((tool, index) => (
                 <button
@@ -796,7 +925,9 @@ export default function App() {
                   onClick={() => setActiveTool(tool)}
                 >
                   <span>{TOOL_LABELS[tool]}</span>
-                  <span className={`text-xs ml-1 px-1 rounded ${activeTool === tool ? 'bg-[--accent]' : 'bg-[--bg-card-hover] text-muted'}`}>
+                  <span
+                    className={`text-xs ml-1 px-1 rounded ${activeTool === tool ? 'bg-[--accent]' : 'bg-[--bg-card-hover] text-muted'}`}
+                  >
                     {index + 1}
                   </span>
                 </button>
@@ -813,7 +944,9 @@ export default function App() {
               {bikeKeys.map((key) => (
                 <button
                   key={key}
-                  className={activeBike === key ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
+                  className={
+                    activeBike === key ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'
+                  }
                   onClick={() => setActiveBike(key)}
                 >
                   {activeBikes[key]?.label.split(' ')[0]}
@@ -824,7 +957,12 @@ export default function App() {
 
           {/* Step 3: Overlay controls */}
           {hasTwoBikes && (
-            <CollapsiblePanel title="Overlay & visibility" stepNumber={3} isOpen={openPanels.overlay} onToggle={() => togglePanel('overlay')}>
+            <CollapsiblePanel
+              title="Overlay & visibility"
+              stepNumber={3}
+              isOpen={openPanels.overlay}
+              onToggle={() => togglePanel('overlay')}
+            >
               <div className="flex items-center gap-3 mb-2">
                 <label className="text-sm">{activeBikes[secondaryBike]?.label} Opacity</label>
                 <input
@@ -869,14 +1007,19 @@ export default function App() {
                 </label>
               </div>
               <div className="mt-2 text-xs text-secondary">
-                Tip: calibrate TOP/BOTTOM on the outer tire profile, then mark the rear axle center on
-                both bikes. Alignment is applied automatically.
+                Tip: calibrate TOP/BOTTOM on the outer tire profile, then mark the rear axle center
+                on both bikes. Alignment is applied automatically.
               </div>
             </CollapsiblePanel>
           )}
 
           {/* Step 4: Results */}
-          <CollapsiblePanel title="Rider triangle distances (mm)" stepNumber={hasTwoBikes ? 4 : 3} isOpen={openPanels.distances} onToggle={() => togglePanel('distances')}>
+          <CollapsiblePanel
+            title="Rider triangle distances (mm)"
+            stepNumber={hasTwoBikes ? 4 : 3}
+            isOpen={openPanels.distances}
+            onToggle={() => togglePanel('distances')}
+          >
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left">
@@ -902,9 +1045,15 @@ export default function App() {
                           {bike.label}
                         </div>
                       </td>
-                      <td className="py-1">{distances.seatPeg ? distances.seatPeg.toFixed(0) : '–'}</td>
-                      <td className="py-1">{distances.seatBar ? distances.seatBar.toFixed(0) : '–'}</td>
-                      <td className="py-1">{distances.pegBar ? distances.pegBar.toFixed(0) : '–'}</td>
+                      <td className="py-1">
+                        {distances.seatPeg ? distances.seatPeg.toFixed(0) : '–'}
+                      </td>
+                      <td className="py-1">
+                        {distances.seatBar ? distances.seatBar.toFixed(0) : '–'}
+                      </td>
+                      <td className="py-1">
+                        {distances.pegBar ? distances.pegBar.toFixed(0) : '–'}
+                      </td>
                     </tr>
                   );
                 })}
@@ -912,16 +1061,22 @@ export default function App() {
             </table>
             {!calibration.isCalibrated && (
               <div className="mt-2 text-xs text-amber-700">
-                Complete calibration (TOP/BOTTOM wheel + rear axle for both bikes) to enable accurate
-                measurements.
+                Complete calibration (TOP/BOTTOM wheel + rear axle for both bikes) to enable
+                accurate measurements.
               </div>
             )}
           </CollapsiblePanel>
 
           {/* Step 5: Measurement Mode */}
-          <CollapsiblePanel title="Measurement Mode" stepNumber={hasTwoBikes ? 5 : 4} isOpen={openPanels.measurement} onToggle={() => togglePanel('measurement')}>
+          <CollapsiblePanel
+            title="Measurement Mode"
+            stepNumber={hasTwoBikes ? 5 : 4}
+            isOpen={openPanels.measurement}
+            onToggle={() => togglePanel('measurement')}
+          >
             <p className="text-xs text-secondary mb-3">
-              Use Photo mode for image-based estimation, or Manual mode if you have exact measurements.
+              Use Photo mode for image-based estimation, or Manual mode if you have exact
+              measurements.
             </p>
             <div className="space-y-4">
               {bikeKeys.map((key) => (
@@ -937,12 +1092,22 @@ export default function App() {
           </CollapsiblePanel>
 
           {/* Step 6: Rider Profile */}
-          <CollapsiblePanel title="Rider Profile" stepNumber={hasTwoBikes ? 6 : 5} isOpen={openPanels.rider} onToggle={() => togglePanel('rider')}>
+          <CollapsiblePanel
+            title="Rider Profile"
+            stepNumber={hasTwoBikes ? 6 : 5}
+            isOpen={openPanels.rider}
+            onToggle={() => togglePanel('rider')}
+          >
             <RiderProfile riderHook={riderProfile} />
           </CollapsiblePanel>
 
           {/* Step 7: Ergonomic Angles */}
-          <CollapsiblePanel title="Ergonomic Angles" stepNumber={hasTwoBikes ? 7 : 6} isOpen={openPanels.angles} onToggle={() => togglePanel('angles')}>
+          <CollapsiblePanel
+            title="Ergonomic Angles"
+            stepNumber={hasTwoBikes ? 7 : 6}
+            isOpen={openPanels.angles}
+            onToggle={() => togglePanel('angles')}
+          >
             <div className="mb-3">
               <div className="text-xs text-muted mb-1">Riding style:</div>
               <RidingStyleSelector value={ridingStyle} onChange={setRidingStyle} />
@@ -983,7 +1148,12 @@ export default function App() {
               className="absolute top-5 right-5 z-20 btn-toggle-inactive text-xs flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
+                />
               </svg>
               Reset zoom ({Math.round(pinchZoom.scale * 100)}%)
             </button>
@@ -991,7 +1161,7 @@ export default function App() {
           <div
             ref={containerRef}
             className="relative w-full overflow-hidden"
-            style={{ minHeight: 520 }}
+            style={{ minHeight: STAGE_MIN_HEIGHT_PX }}
             onWheel={pinchZoom.handlers.onWheel}
           >
             {/* Zoomable content wrapper - ref for direct DOM manipulation during gestures */}
@@ -1005,24 +1175,45 @@ export default function App() {
                   {renderBikeLayer(secondaryBike, true)}
                 </>
               ) : (
-              <div className="empty-state">
-                <svg className="w-16 h-16 text-muted mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <h3 className="text-lg font-medium text-secondary mb-1">
-                  {bikeKeys.length === 0 ? 'No bikes selected' : 'Add another bike'}
-                </h3>
-                <p className="text-muted max-w-xs mb-4">
-                  {bikeKeys.length === 0
-                    ? 'Click "Manage bikes" to upload your motorcycle photos and start comparing.'
-                    : 'Add a second bike to compare riding positions side by side.'}
-                </p>
-                <button onClick={() => setShowBikeManager(true)} className="btn-primary text-sm">
-                  Manage bikes
-                </button>
-              </div>
+                <div className="empty-state">
+                  <svg
+                    className="w-16 h-16 text-muted mb-4 opacity-50"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <h3 className="text-lg font-medium text-secondary mb-1">
+                    {bikeKeys.length === 0 ? 'No bikes selected' : 'Add another bike'}
+                  </h3>
+                  <p className="text-muted max-w-xs mb-4">
+                    {bikeKeys.length === 0
+                      ? 'Click "Manage bikes" to upload your motorcycle photos and start comparing.'
+                      : 'Add a second bike to compare riding positions side by side.'}
+                  </p>
+                  <button onClick={() => setShowBikeManager(true)} className="btn-primary text-sm">
+                    Manage bikes
+                  </button>
+                </div>
               )}
             </div>
+
+            {/* Touch loupe for precise marker placement on mobile */}
+            {loupeState.visible && loupeState.bikeKey && activeBikes[loupeState.bikeKey] && (
+              <TouchLoupe
+                visible={loupeState.visible}
+                touchX={loupeState.touchX}
+                touchY={loupeState.touchY}
+                imageSrc={activeBikes[loupeState.bikeKey].img}
+                containerRect={loupeState.containerRect}
+              />
+            )}
           </div>
 
           <div className="mt-3 text-xs text-muted">

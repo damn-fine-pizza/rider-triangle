@@ -24,16 +24,14 @@ export function useCalibration(bikes) {
   );
 
   // Rear axle center position per bike
-  const [axle, setAxle] = useState(
-    bikeKeys.reduce((acc, key) => ({ ...acc, [key]: null }), {})
-  );
+  const [axle, setAxle] = useState(bikeKeys.reduce((acc, key) => ({ ...acc, [key]: null }), {}));
 
   // Calculate outer diameter for each bike based on wheel choice
   const outerDiameters = useMemo(() => {
     return bikeKeys.reduce((acc, key) => {
       const wheel = wheelChoice[key];
       const tireSpec = bikes[key]?.tires?.[wheel];
-      acc[key] = tireSpec ? outerDiameterMM(tireSpec) ?? 0 : 0;
+      acc[key] = tireSpec ? (outerDiameterMM(tireSpec) ?? 0) : 0;
       return acc;
     }, {});
   }, [bikes, wheelChoice, bikeKeys]);
@@ -68,9 +66,7 @@ export function useCalibration(bikes) {
 
   // Check if calibration is complete for all bikes
   const isCalibrated = useMemo(() => {
-    return bikeKeys.every(
-      (key) => calibPts[key].top && calibPts[key].bot && axle[key]
-    );
+    return bikeKeys.every((key) => calibPts[key].top && calibPts[key].bot && axle[key]);
   }, [calibPts, axle, bikeKeys]);
 
   // Set wheel choice for a bike

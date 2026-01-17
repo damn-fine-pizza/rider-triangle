@@ -129,7 +129,12 @@ export function calculateBackAngle(seat, bar) {
  * @param {number} shoulderOffset - Estimated shoulder position offset from seat in mm
  * @returns {number|null} Arm angle in degrees, or null if invalid
  */
-export function calculateArmAngle(seatBarDistance, upperArmLength, forearmLength, shoulderOffset = 0) {
+export function calculateArmAngle(
+  seatBarDistance,
+  upperArmLength,
+  forearmLength,
+  shoulderOffset = 0
+) {
   if (!seatBarDistance || !upperArmLength || !forearmLength) return null;
 
   // Approximate reach from shoulder to bar
@@ -233,10 +238,15 @@ export function calculateAllAnglesFromDistances(distances, manualMeasurements, r
   let back = null;
 
   if (manualMeasurements) {
-    const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } = manualMeasurements;
+    const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } =
+      manualMeasurements;
 
-    if (seatToPegHorizontal != null && seatToPegVertical != null &&
-        seatToBarHorizontal != null && seatToBarVertical != null) {
+    if (
+      seatToPegHorizontal != null &&
+      seatToPegVertical != null &&
+      seatToBarHorizontal != null &&
+      seatToBarVertical != null
+    ) {
       // Virtual markers (seat at origin)
       const seat = { x: 0, y: 0 };
       const peg = { x: -seatToPegHorizontal, y: seatToPegVertical };
