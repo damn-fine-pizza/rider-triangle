@@ -1,0 +1,45 @@
+/**
+ * EditModeHeader - Floating header pill for Immersive Edit Mode.
+ *
+ * Shows current tool, progress indicator, and exit button.
+ */
+
+import { EDIT_MODE } from '../constants';
+
+export function EditModeHeader({ toolLabel, progress, onExit }) {
+  return (
+    <div
+      data-testid="edit-mode-header"
+      className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 safe-area-top"
+      style={{ height: EDIT_MODE.HEADER_HEIGHT_PX }}
+    >
+      {/* Tool indicator pill */}
+      <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
+        <span className="text-orange-400 text-lg">📍</span>
+        <span className="text-white font-medium text-sm">{toolLabel}</span>
+        {progress && (
+          <span className="text-white/60 text-xs ml-1">
+            ({progress.current}/{progress.total})
+          </span>
+        )}
+      </div>
+
+      {/* Exit button */}
+      <button
+        data-testid="edit-mode-exit"
+        onClick={onExit}
+        className="w-10 h-10 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-full shadow-lg active:bg-black/90 transition-colors"
+        aria-label="Exit edit mode"
+      >
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}

@@ -9,6 +9,7 @@ import { useTheme } from './hooks/useTheme';
 import { useImage } from './hooks/useImage';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { usePinchZoom } from './hooks/usePinchZoom';
+import { useEditMode } from './hooks/useEditMode';
 import { Marker } from './components/Marker';
 import { CalibrationMarker } from './components/CalibrationMarker';
 import { ClickGuide } from './components/ClickGuide';
@@ -21,6 +22,7 @@ import { SkeletonOverlay } from './components/SkeletonOverlay';
 import { CollapsiblePanel } from './components/CollapsiblePanel';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { TouchLoupe } from './components/TouchLoupe';
+import { EditMode } from './components/EditMode';
 import { TOOL_SEQUENCE, TOOL_LABELS, TOUCH, ZOOM, STAGE_MIN_HEIGHT_PX } from './constants';
 
 // Lazy load ExportButton (includes html2canvas which is heavy)
@@ -120,6 +122,15 @@ export default function App() {
     minScale: ZOOM.MIN_SCALE,
     maxScale: ZOOM.MAX_SCALE,
     containerRef,
+  });
+
+  // Immersive Edit Mode for precise mobile marker placement
+  const editMode = useEditMode({
+    initialTool: activeTool,
+    onToolChange: setActiveTool,
+    onExit: () => {
+      // Reset zoom when exiting edit mode
+    },
   });
 
   // Track if a gesture is in progress (to distinguish tap from pinch/pan)
@@ -383,7 +394,7 @@ export default function App() {
     [pinchZoom.handlers, pinchZoom.scale, loupeState.visible]
   );
 
-  // Handle touch end - place marker (from loupe position or quick tap)
+  // Handle touch end - enter Edit Mode or place marker
   const handleTouchEnd = useCallback(
     (e, bikeKey) => {
       // Clear loupe timer
@@ -394,7 +405,7 @@ export default function App() {
 
       pinchZoom.handlers.onTouchEnd(e);
 
-      // Only place marker if active bike matches and no gesture in progress
+      // Only process if active bike matches and no gesture in progress
       if (bikeKey !== activeBike) {
         setLoupeState((s) => ({ ...s, visible: false }));
         return;
@@ -410,12 +421,10 @@ export default function App() {
         return;
       }
 
-      const rect = e.currentTarget.getBoundingClientRect();
-
-      // If loupe was visible, use its tracked position for precise placement
+      // If loupe was visible, place marker at loupe position
       if (loupeState.visible && loupeState.containerRect) {
         e.preventDefault();
-        // Convert loupe position to clientX/clientY
+        const rect = e.currentTarget.getBoundingClientRect();
         const clientX = loupeState.touchX + loupeState.containerRect.left;
         const clientY = loupeState.touchY + loupeState.containerRect.top;
         placeMarker(bikeKey, clientX, clientY, rect);
@@ -423,7 +432,7 @@ export default function App() {
         return;
       }
 
-      // Otherwise, check for quick tap
+      // Check for quick tap
       const tapDuration = Date.now() - touchStartTime.current;
       if (tapDuration > TOUCH.TAP_MAX_DURATION_MS) return;
 
@@ -431,14 +440,17 @@ export default function App() {
       const dy = Math.abs(touch.clientY - touchStartPos.current.y);
       if (dx > TOUCH.TAP_MAX_MOVEMENT_PX || dy > TOUCH.TAP_MAX_MOVEMENT_PX) return;
 
-      // It's a valid quick tap - place marker
+      // Quick tap detected - enter Edit Mode for precise placement
       e.preventDefault();
-      placeMarker(bikeKey, touch.clientX, touch.clientY, rect);
+      setLoupeState((s) => ({ ...s, visible: false }));
+      editMode.enter(activeTool);
     },
     [
       activeBike,
+      activeTool,
       pinchZoom.handlers,
       placeMarker,
+      editMode,
       loupeState.visible,
       loupeState.touchX,
       loupeState.touchY,
@@ -1223,6 +1235,54 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Immersive Edit Mode for mobile marker placement */}
+      <EditMode
+        isActive={editMode.isActive}
+        isAnimating={editMode.isAnimating}
+        imageSrc={activeBike ? activeBikes[activeBike]?.img : null}
+        imageAlt={activeBike ? activeBikes[activeBike]?.label : ''}
+        toolLabel={editMode.getCurrentToolLabel()}
+        progress={editMode.getProgress()}
+        currentTool={editMode.currentTool}
+        markers={activeBike ? markersHook.markers[activeBike] : null}
+        calibration={
+          activeBike
+            ? {
+                calibTop: calibration.calibPts[activeBike]?.top,
+                calibBot: calibration.calibPts[activeBike]?.bot,
+                axle: calibration.axle[activeBike],
+              }
+            : null
+        }
+        onPlaceMarker={(x, y) => {
+          if (!activeBike) return;
+          const tool = editMode.currentTool;
+
+          // Place marker based on tool type
+          if (tool === 'calibTop') {
+            calibration.setCalibPoint(activeBike, 'top', { x, y });
+          } else if (tool === 'calibBot') {
+            calibration.setCalibPoint(activeBike, 'bot', { x, y });
+          } else if (tool === 'axle') {
+            calibration.setAxlePosition(activeBike, { x, y });
+          } else if (MARKER_TYPES.includes(tool)) {
+            markersHook.setMarker(activeBike, tool, { x, y });
+          }
+
+          // Advance to next tool
+          editMode.advanceToNextTool();
+        }}
+        onUpdateMarker={(type, pos) => {
+          if (!activeBike) return;
+          if (MARKER_TYPES.includes(type)) {
+            markersHook.setMarker(activeBike, type, pos);
+          }
+        }}
+        onExit={editMode.exit}
+        onSwipeStart={editMode.handleSwipeStart}
+        onSwipeEnd={editMode.handleSwipeEnd}
+      />
 
       {/* Onboarding overlay for first-time users */}
       <OnboardingOverlay

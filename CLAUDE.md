@@ -38,14 +38,19 @@ src/
 │   ├── ManualMeasurements.jsx # Direct measurement input (bypass photo)
 │   ├── AngleDisplay.jsx      # Angle comparison table with zones
 │   ├── SkeletonOverlay.jsx   # SVG stick figure visualization
-│   └── ExportButton.jsx      # Export PNG / share link dropdown
+│   ├── ExportButton.jsx      # Export PNG / share link dropdown
+│   ├── EditMode.jsx          # Fullscreen immersive marker placement
+│   ├── EditModeHeader.jsx    # Tool indicator pill with exit button
+│   └── TouchLoupe.jsx        # Magnifying glass for precise touch
 ├── hooks/
 │   ├── useImage.js           # Image loading hook
 │   ├── useCalibration.js     # Calibration state & calculations
 │   ├── useMarkers.js         # Rider triangle markers state
 │   ├── useRiderProfile.js    # Rider body measurements
 │   ├── useBikeStore.js       # Bike library management
-│   └── useMeasurementMode.js # Photo vs manual mode toggle
+│   ├── useMeasurementMode.js # Photo vs manual mode toggle
+│   ├── useEditMode.js        # Immersive edit mode state
+│   └── usePinchZoom.js       # Pinch-to-zoom gesture handling
 ├── utils/
 │   ├── tire.js               # Tire spec parsing and diameter calculation
 │   ├── geometry.js           # Distance, scale, translation calculations
@@ -81,6 +86,8 @@ src/
 - **useMeasurementMode()** - Toggles between photo-based and manual measurement input
 - **useBikeStore()** - Manages bike library with add/remove/update and localStorage persistence
 - **useImage(src)** - Tracks image loading and natural dimensions
+- **useEditMode(options)** - Manages immersive fullscreen edit mode (enter, exit, tool advance, swipe-to-exit)
+- **usePinchZoom(options)** - Handles pinch-to-zoom and pan gestures for mobile
 
 ### Key Calculations
 
@@ -127,6 +134,7 @@ All magic numbers and configurable values should be in `src/constants.js`:
 - `TOUCH` - Touch interaction thresholds (tap duration, movement, loupe delay)
 - `LOUPE` - Touch loupe appearance (size, magnification, offset)
 - `ZOOM` - Pinch-zoom limits and behavior
+- `EDIT_MODE` - Immersive edit mode settings (animation, header height, swipe threshold)
 - `TOOL_SEQUENCE` / `TOOL_LABELS` - Calibration tool definitions
 - `MARKER_TYPES` - Rider triangle marker types
 - `STAGE_MIN_HEIGHT_PX` - Minimum stage height

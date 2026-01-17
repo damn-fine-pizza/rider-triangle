@@ -21,12 +21,13 @@
 | 7 - Export & Share | ✅ Complete | PNG export, shareable links |
 | 8 - Mobile & Polish | ✅ Complete | Touch, wizard, dark mode, accessibility |
 | 8.5 - Performance | ✅ Complete | Lazy loading, IndexedDB, compression |
-| 8.6 - PWA Install | ⬅️ Next | PNG icons, install prompt, iOS banner, PWA tests |
-| 9 - Bike Database | Planned | Pre-configured popular bikes |
-| 10 - Fit Recommendations | Planned | AI-powered suggestions |
-| 11 - Multi-Position Analysis | Planned | Sport/touring/commute modes |
-| 12 - Session History | Planned | Compare across time |
-| 13 - Internationalization | Planned | Multi-language, unit systems |
+| 8.6 - PWA Install | ✅ Complete | PNG icons, install prompt, iOS banner, PWA tests |
+| 9 - Edit Mode | ✅ Complete | Immersive fullscreen marker placement |
+| 10 - Bike Database | Planned | Pre-configured popular bikes |
+| 11 - Fit Recommendations | Planned | AI-powered suggestions |
+| 12 - Multi-Position Analysis | Planned | Sport/touring/commute modes |
+| 13 - Session History | Planned | Compare across time |
+| 14 - Internationalization | Planned | Multi-language, unit systems |
 
 ---
 
@@ -376,7 +377,7 @@ With real measurements, user gets precise ergonomic analysis.
 
 ---
 
-## Milestone 8.6: PWA Install Prompt
+## Milestone 8.6: PWA Install Prompt ✅ COMPLETE
 
 **Goal:** Enable proper PWA installation on mobile devices with custom install prompts.
 
@@ -411,7 +412,45 @@ PWA installation requires:
 
 ---
 
-## Milestone 9: Bike Database
+## Milestone 9: Immersive Edit Mode ✅ COMPLETE
+
+**Goal:** Fullscreen mode for precise marker placement without scroll conflicts.
+
+### Background
+On mobile, page scrolling conflicts with image pan/zoom gestures. Edit Mode provides a dedicated fullscreen experience where all gestures are reserved for marker placement.
+
+### Features
+- **Fullscreen overlay:** 100vh, no scroll
+- **Pinch-to-zoom:** Up to 4x magnification
+- **Pan:** One-finger drag when zoomed
+- **Tap:** Place marker at position
+- **Long-press:** Show 150px loupe for sub-pixel precision
+- **Swipe down:** Exit edit mode
+- **Auto-advance:** Automatically moves to next tool after placement
+
+### Gestures
+| Gesture | Action |
+|---------|--------|
+| Pinch | Zoom in/out |
+| Drag (1 finger) | Pan image (when zoomed) |
+| Tap | Place marker at position |
+| Long-press | Show loupe for precision |
+| Swipe down | Exit without placing |
+
+### Files
+| File | Status |
+|------|--------|
+| `src/components/EditMode.jsx` | ✅ Created - Fullscreen container |
+| `src/components/EditModeHeader.jsx` | ✅ Created - Tool indicator pill |
+| `src/hooks/useEditMode.js` | ✅ Created - Edit mode state management |
+| `src/constants.js` | ✅ Updated - EDIT_MODE constants |
+| `src/index.css` | ✅ Updated - Fade animations |
+| `src/App.jsx` | ✅ Updated - EditMode integration |
+| `e2e/mobile-markers.spec.js` | ✅ Updated - Edit mode tests |
+
+---
+
+## Milestone 10: Bike Database
 
 **Goal:** Provide pre-configured bikes so users can quickly compare without uploading photos.
 
@@ -445,7 +484,7 @@ PWA installation requires:
 
 ---
 
-## Milestone 10: Fit Recommendations & Comfort Analysis
+## Milestone 11: Fit Recommendations & Comfort Analysis
 
 **Goal:** Provide actionable recommendations based on calculated angles.
 
@@ -486,7 +525,7 @@ PWA installation requires:
 
 ---
 
-## Milestone 11: Multi-Position Analysis
+## Milestone 12: Multi-Position Analysis
 
 **Goal:** Analyze different riding positions on the same bike.
 
@@ -515,7 +554,7 @@ Riders don't stay in one position. This milestone adds:
 
 ---
 
-## Milestone 12: Session History & Progress Tracking
+## Milestone 13: Session History & Progress Tracking
 
 **Goal:** Track changes over time (bike modifications, rider flexibility improvements).
 
@@ -544,7 +583,7 @@ Riders don't stay in one position. This milestone adds:
 
 ---
 
-## Milestone 13: Internationalization & Units
+## Milestone 14: Internationalization & Units
 
 **Goal:** Support global users with multiple languages and unit systems.
 
@@ -582,7 +621,7 @@ Riders don't stay in one position. This milestone adds:
 
 ---
 
-## Milestone 14: Advanced Ergonomics (Post-MVP Enhancement)
+## Milestone 15: Advanced Ergonomics (Post-MVP Enhancement)
 
 **Goal:** Deep-dive ergonomic analysis for serious riders and fitters.
 
@@ -603,7 +642,7 @@ Riders don't stay in one position. This milestone adds:
 
 ---
 
-## Milestone 15: Community & Social Features (Long-term)
+## Milestone 16: Community & Social Features (Long-term)
 
 **Goal:** Build a community around motorcycle ergonomics.
 
@@ -626,7 +665,7 @@ Riders don't stay in one position. This milestone adds:
 
 ---
 
-## Milestone 16: Platform Expansion (Future)
+## Milestone 17: Platform Expansion (Future)
 
 **Goal:** Extend beyond web to native apps and integrations.
 
@@ -663,6 +702,9 @@ Features are mapped to tests following TDD principles.
 | Wheel zoom | `mobile-markers.spec.js` | Ctrl+scroll |
 | Touch loupe | `mobile-markers.spec.js` | Long-press magnifier |
 | Marker after zoom | `mobile-markers.spec.js` | Coordinate calculation fix |
+| Edit mode entry | `mobile-markers.spec.js` | Tap enters fullscreen mode |
+| Edit mode exit | `mobile-markers.spec.js` | Button exit, swipe down |
+| Edit mode markers | `mobile-markers.spec.js` | Placement and auto-advance |
 
 ---
 
