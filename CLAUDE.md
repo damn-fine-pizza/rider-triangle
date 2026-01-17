@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Rider Triangle is a React PWA for comparing motorcycle riding positions - a self-service alternative to Cycle Ergo. Users overlay bike side-view images, calibrate using tire diameter, and calculate ergonomic measurements.
 
-**Vision (see ROADMAP.md):** Upload any bike photo, input rider measurements, get ergonomic angle calculations (knee, hip, arm, torso).
+**Live Demo:** https://damn-fine-pizza.github.io/rider-triangle/
 
 **Priority document:** `RAW-DESCRIPTION.md` contains the full product vision and takes priority.
 
@@ -17,6 +17,8 @@ npm install      # Install dependencies
 npm run dev      # Start dev server (http://localhost:5173)
 npm run build    # Production build to dist/
 npm run preview  # Preview production build
+npm run test     # Run tests (vitest)
+npm run test:run # Run tests once
 ```
 
 ## Project Structure
@@ -27,18 +29,37 @@ src/
 ├── App.jsx               # Main application component
 ├── index.css             # Tailwind imports
 ├── components/
-│   ├── Marker.jsx        # Draggable point with mouse/touch support
-│   └── ClickGuide.jsx    # Instruction tooltip
+│   ├── Marker.jsx            # Draggable point with mouse/touch support
+│   ├── CalibrationMarker.jsx # Calibration crosshair markers (TOP/BOT)
+│   ├── ClickGuide.jsx        # Instruction tooltip
+│   ├── BikeCard.jsx          # Bike configuration card
+│   ├── ImageUpload.jsx       # Drag & drop image upload
+│   ├── RiderProfile.jsx      # Rider measurements form
+│   ├── ManualMeasurements.jsx # Direct measurement input (bypass photo)
+│   ├── AngleDisplay.jsx      # Angle comparison table with zones
+│   ├── SkeletonOverlay.jsx   # SVG stick figure visualization
+│   └── ExportButton.jsx      # Export PNG / share link dropdown
 ├── hooks/
-│   ├── useImage.js       # Image loading hook
-│   ├── useCalibration.js # Calibration state & calculations
-│   └── useMarkers.js     # Rider triangle markers state
+│   ├── useImage.js           # Image loading hook
+│   ├── useCalibration.js     # Calibration state & calculations
+│   ├── useMarkers.js         # Rider triangle markers state
+│   ├── useRiderProfile.js    # Rider body measurements
+│   ├── useBikeStore.js       # Bike library management
+│   └── useMeasurementMode.js # Photo vs manual mode toggle
 ├── utils/
-│   ├── tire.js           # Tire spec parsing and diameter calculation
-│   └── geometry.js       # Distance, scale, translation calculations
-└── data/
-    ├── bikes.js          # Bike configurations (uses imageProvider)
-    └── imageProvider.js  # Abstraction for image URLs (swappable)
+│   ├── tire.js               # Tire spec parsing and diameter calculation
+│   ├── geometry.js           # Distance, scale, translation calculations
+│   ├── ergonomics.js         # Angle calculations (knee, hip, back, arm)
+│   ├── skeleton.js           # Joint position calculations (two-circle intersection)
+│   ├── export.js             # PNG export, URL encoding, session storage
+│   └── ergonomics.test.js    # Unit tests for angle calculations
+├── data/
+│   ├── bikes.js              # Default bike configurations
+│   ├── imageProvider.js      # Abstraction for image URLs
+│   ├── bodyProportions.js    # NASA-based body proportion ratios
+│   └── comfortZones.js       # Angle comfort/warning/extreme ranges
+└── test/
+    └── setup.js              # Vitest setup
 ```
 
 ## Tech Stack
@@ -47,6 +68,8 @@ src/
 - **Framework**: React 18
 - **Styling**: Tailwind CSS
 - **PWA**: vite-plugin-pwa (Workbox service worker)
+- **Testing**: Vitest + React Testing Library
+- **Export**: html2canvas
 
 ## Architecture
 
@@ -54,11 +77,27 @@ src/
 
 - **useCalibration(bikes)** - Manages wheel selection, calibration points, axle positions, and derived calculations (pxPerMM, scale, translation)
 - **useMarkers(bikeKeys)** - Manages rider triangle markers (seat, peg, bar) and distance calculations
+- **useRiderProfile()** - Manages rider body measurements with localStorage persistence
+- **useMeasurementMode()** - Toggles between photo-based and manual measurement input
+- **useBikeStore()** - Manages bike library with add/remove/update and localStorage persistence
 - **useImage(src)** - Tracks image loading and natural dimensions
 
-### Image Provider Pattern
+### Key Calculations
 
-`src/data/imageProvider.js` abstracts image source resolution. Currently uses external URLs from moto.suzuki.it. Can be swapped to local bundle, custom CDN, or backend proxy.
+**Geometry (`src/utils/geometry.js`):**
+- `distance(a, b)` - Euclidean distance between points
+- `calculatePxPerMM(calibPts, tireDiameter)` - Pixel-to-mm ratio
+- `calculateScale(pxPerMM_A, pxPerMM_B)` - Scale factor for alignment
+- `calculateTranslation(axleA, axleB, scale)` - Translation for axle alignment
+
+**Ergonomics (`src/utils/ergonomics.js`):**
+- `calculateKneeAngle(seatPegDist, thigh, lowerLeg)` - Law of cosines
+- `calculateHipAngle(seat, peg, bar, torso)` - Vector angle
+- `calculateBackAngle(seat, bar)` - Angle from vertical
+- `calculateArmAngle(seatBarDist, upperArm, forearm)` - Law of cosines
+
+**Skeleton (`src/utils/skeleton.js`):**
+- `calculateSkeletonJoints(markers, measurements, pxPerMM)` - Two-circle intersection for natural joint positions
 
 ### Calibration Flow
 
@@ -68,20 +107,32 @@ src/
 4. Places rider triangle points: seat, footpeg, handlebar
 5. App calculates px-to-mm ratio and aligns images
 
-### Key Calculations (in `src/utils/geometry.js`)
+### Keyboard Shortcuts
 
-- `distance(a, b)` - Euclidean distance between points
-- `calculatePxPerMM(calibPts, tireDiameter)` - Pixel-to-mm ratio
-- `calculateScale(pxPerMM_A, pxPerMM_B)` - Scale factor for alignment
-- `calculateTranslation(axleA, axleB, scale)` - Translation for axle alignment
-- `distanceInMM(pointA, pointB, pxPerMM)` - Real-world distance
-- `angleBetween(a, vertex, c)` - Angle calculation (for future ergonomics)
+- `1-6` - Select tools (calibTop, calibBot, axle, seat, peg, bar)
+- `Tab` - Switch active bike
 
 ### PWA Features
 
 - Service worker caches static assets
 - External images cached for 30 days
 - Installable on mobile/desktop
+- iOS/Android meta tags for home screen
+
+## Testing
+
+```bash
+npm run test      # Watch mode
+npm run test:run  # Single run
+```
+
+Tests are in `src/utils/*.test.js`. Currently testing ergonomics calculations.
+
+## Deployment
+
+GitHub Pages via GitHub Actions. Push to `main` triggers build and deploy.
+
+Workflow: `.github/workflows/deploy.yml`
 
 ## Legacy
 
