@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
+import { useRef, useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useBikeStore } from './hooks/useBikeStore';
 import { useCalibration } from './hooks/useCalibration';
 import { useMarkers, MARKER_TYPES } from './hooks/useMarkers';
@@ -16,8 +16,13 @@ import { RiderProfile } from './components/RiderProfile';
 import { ManualMeasurements } from './components/ManualMeasurements';
 import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
 import { SkeletonOverlay } from './components/SkeletonOverlay';
-import { ExportButton } from './components/ExportButton';
 import { CollapsiblePanel } from './components/CollapsiblePanel';
+import { LoadingSpinner } from './components/LoadingSpinner';
+
+// Lazy load ExportButton (includes html2canvas which is heavy)
+const ExportButton = lazy(() =>
+  import('./components/ExportButton').then((m) => ({ default: m.ExportButton }))
+);
 import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
 import { hapticMedium, hapticSuccess } from './utils/haptics';
@@ -474,7 +479,9 @@ export default function App() {
               Help
             </button>
           )}
-          <ExportButton containerRef={containerRef} getShareState={getShareState} />
+          <Suspense fallback={<LoadingSpinner size="sm" />}>
+            <ExportButton containerRef={containerRef} getShareState={getShareState} />
+          </Suspense>
         </div>
       </div>
 

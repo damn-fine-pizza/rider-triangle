@@ -19,7 +19,8 @@
 | 5 - Real Measurements | ✅ Complete | Bypass photo estimation |
 | 6 - Calibration UX | ✅ Complete | Visual markers, keyboard shortcuts |
 | 7 - Export & Share | ✅ Complete | PNG export, shareable links |
-| 8 - Mobile & Polish | ⬅️ Next | Touch, wizard, accessibility |
+| 8 - Mobile & Polish | ✅ Complete | Touch, wizard, dark mode, accessibility |
+| 8.5 - Performance | ⬅️ Next | Lazy loading, IndexedDB, compression |
 | 9 - Bike Database | Planned | Pre-configured popular bikes |
 | 10 - Fit Recommendations | Planned | AI-powered suggestions |
 | 11 - Multi-Position Analysis | Planned | Sport/touring/commute modes |
@@ -313,7 +314,7 @@ With real measurements, user gets precise ergonomic analysis.
 
 ---
 
-## Milestone 8: Mobile & Polish ⬅️ IN PROGRESS
+## Milestone 8: Mobile & Polish ✅ COMPLETE
 
 **Goal:** Final refinements for public release.
 
@@ -336,12 +337,6 @@ With real measurements, user gets precise ergonomic analysis.
 - [x] Screen reader labels (ARIA)
 - [x] Reduced motion support (prefers-reduced-motion)
 
-### Performance (Deferred to M8.5)
-- [ ] Lazy load components
-- [ ] Optimize image handling (compress before storing)
-- [ ] Service worker caching strategy
-- [ ] IndexedDB for large image storage (vs localStorage limits)
-
 ### Files
 | File | Status |
 |------|--------|
@@ -357,6 +352,26 @@ With real measurements, user gets precise ergonomic analysis.
 | `src/components/ExportButton.jsx` | ✅ Updated - loading spinner, CSS classes |
 | `src/App.jsx` | ✅ Updated - dark mode, haptics, CSS classes |
 | `tailwind.config.js` | ✅ Updated - darkMode: 'class' |
+
+---
+
+## Milestone 8.5: Performance Optimization ⬅️ IN PROGRESS
+
+**Goal:** Optimize storage and loading for better performance.
+
+### Tasks
+- [x] Image compression before storing (Canvas API resize + JPEG compression)
+- [x] IndexedDB for large image storage (vs localStorage 5-10MB limit)
+- [x] Lazy load heavy components (ExportButton with html2canvas)
+- [ ] Service worker caching improvements (deferred)
+
+### Files
+| File | Status |
+|------|--------|
+| `src/utils/imageCompression.js` | ✅ Created - compress/resize images |
+| `src/utils/indexedDB.js` | ✅ Created - IndexedDB wrapper |
+| `src/hooks/useBikeStore.js` | ✅ Updated - compression + IndexedDB |
+| `src/App.jsx` | ✅ Updated - React.lazy for ExportButton |
 
 ---
 
