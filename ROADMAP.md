@@ -17,8 +17,8 @@
 | 3.5 - GitHub Pages | ✅ Complete | Deploy preview to GitHub Pages |
 | 4 - Visual Feedback | ✅ Complete | Skeleton overlay, comfort zones |
 | 5 - Real Measurements | ✅ Complete | Bypass photo estimation |
-| 6 - Calibration UX | ⬅️ Next | Visual markers, zoom/pan |
-| 7 - Export & Share | Planned | PDF, image, shareable links |
+| 6 - Calibration UX | ✅ Complete | Visual markers, keyboard shortcuts |
+| 7 - Export & Share | ⬅️ Next | PDF, image, shareable links |
 | 8 - Mobile & Polish | Planned | Touch, wizard, accessibility |
 | 9 - Bike Database | Planned | Pre-configured popular bikes |
 | 10 - Fit Recommendations | Planned | AI-powered suggestions |
@@ -259,36 +259,33 @@ With real measurements, user gets precise ergonomic analysis.
 
 ---
 
-## Milestone 6: Calibration UX Improvements ⬅️ NEXT
+## Milestone 6: Calibration UX Improvements ✅ COMPLETE
 
 **Goal:** Make the calibration process more intuitive and precise.
 
-### Current Issues
-- Calibration points (TOP/BOTTOM wheel) are invisible after placement
-- No zoom for precise placement
-- No visual guide showing where to click
-- Mobile touch is imprecise
+### Completed Tasks
+- [x] Show calibration point markers on image (TOP/BOTTOM crosshairs with labels)
+- [x] Show calibration line with measurement label (tire diameter in mm)
+- [x] Keyboard navigation between tools (1-6 keys)
+- [x] Tab key to switch between bikes
+- [x] Added iOS PWA support meta tags
 
-### Tasks
-- [ ] Show calibration point markers on image (TOP/BOTTOM dots with labels)
+### Files
+| File | Status |
+|------|--------|
+| `src/components/CalibrationMarker.jsx` | ✅ Created |
+| `src/App.jsx` | ✅ Updated - keyboard shortcuts, calibration markers |
+| `index.html` | ✅ Updated - iOS/Android PWA meta tags |
+
+### Deferred to Future Milestones
 - [ ] Add zoom/pan for image (pinch on mobile, scroll wheel on desktop)
-- [ ] Show calibration line with measurement label
 - [ ] Add "guide mode" with animated hints
 - [ ] Snap-to-edge option for wheel calibration
 - [ ] Undo last point placement
-- [ ] Keyboard navigation between tools (1-6 keys)
-
-### Files
-| File | Action |
-|------|--------|
-| `src/components/CalibrationMarker.jsx` | Create |
-| `src/components/ZoomableImage.jsx` | Create |
-| `src/hooks/useImageZoom.js` | Create |
-| `src/hooks/useUndo.js` | Create |
 
 ---
 
-## Milestone 7: Export & Share
+## Milestone 7: Export & Share ⬅️ NEXT
 
 **Goal:** Allow users to save and share their comparison results.
 

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { useBikeStore } from './hooks/useBikeStore';
 import { useCalibration } from './hooks/useCalibration';
 import { useMarkers, MARKER_TYPES } from './hooks/useMarkers';
@@ -6,6 +6,7 @@ import { useRiderProfile } from './hooks/useRiderProfile';
 import { useMeasurementMode } from './hooks/useMeasurementMode';
 import { useImage } from './hooks/useImage';
 import { Marker } from './components/Marker';
+import { CalibrationMarker } from './components/CalibrationMarker';
 import { ClickGuide } from './components/ClickGuide';
 import { BikeCard } from './components/BikeCard';
 import { ImageUpload } from './components/ImageUpload';
@@ -114,6 +115,32 @@ export default function App() {
       setActiveTool(TOOL_SEQUENCE[currentIndex + 1]);
     }
   }, [activeTool]);
+
+  // Keyboard shortcuts for tool selection (1-6 keys)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      const key = e.key;
+      if (key >= '1' && key <= '6') {
+        const index = parseInt(key) - 1;
+        if (index < TOOL_SEQUENCE.length) {
+          setActiveTool(TOOL_SEQUENCE[index]);
+        }
+      }
+      // Tab to switch active bike
+      if (key === 'Tab' && bikeKeys.length > 1) {
+        e.preventDefault();
+        const currentIndex = bikeKeys.indexOf(activeBike);
+        const nextIndex = (currentIndex + 1) % bikeKeys.length;
+        setActiveBike(bikeKeys[nextIndex]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [bikeKeys, activeBike]);
 
   // Handle click on image to place points
   const handleImageClick = useCallback(
@@ -247,20 +274,57 @@ export default function App() {
           </div>
         )}
 
-        {/* Calibration line */}
+        {/* Calibration line with measurement label */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
           {calibPts.top && calibPts.bot && (
-            <line
-              x1={calibPts.top.x}
-              y1={calibPts.top.y}
-              x2={calibPts.bot.x}
-              y2={calibPts.bot.y}
-              stroke={bike.color}
-              strokeWidth={2}
-              strokeDasharray="4 3"
-            />
+            <>
+              <line
+                x1={calibPts.top.x}
+                y1={calibPts.top.y}
+                x2={calibPts.bot.x}
+                y2={calibPts.bot.y}
+                stroke={bike.color}
+                strokeWidth={2}
+                strokeDasharray="4 3"
+              />
+              {/* Measurement label on calibration line */}
+              {calibration.outerDiameters[bikeKey] > 0 && (
+                <text
+                  x={(calibPts.top.x + calibPts.bot.x) / 2 + 10}
+                  y={(calibPts.top.y + calibPts.bot.y) / 2}
+                  fill={bike.color}
+                  fontSize={11}
+                  fontWeight="bold"
+                  style={{ textShadow: '0 0 3px white, 0 0 3px white' }}
+                >
+                  {Math.round(calibration.outerDiameters[bikeKey])} mm
+                </text>
+              )}
+            </>
           )}
         </svg>
+
+        {/* Calibration point markers (TOP/BOTTOM) */}
+        {calibPts.top && (
+          <CalibrationMarker
+            x={calibPts.top.x}
+            y={calibPts.top.y}
+            color={bike.color}
+            label="TOP"
+            scale={scale}
+            onDrag={(nx, ny) => calibration.setCalibPoint(bikeKey, 'top', { x: nx, y: ny })}
+          />
+        )}
+        {calibPts.bot && (
+          <CalibrationMarker
+            x={calibPts.bot.x}
+            y={calibPts.bot.y}
+            color={bike.color}
+            label="BOT"
+            scale={scale}
+            onDrag={(nx, ny) => calibration.setCalibPoint(bikeKey, 'bot', { x: nx, y: ny })}
+          />
+        )}
 
         {/* Axle marker */}
         {axle && (
@@ -482,15 +546,21 @@ export default function App() {
           <div className="p-4 bg-white rounded-2xl shadow">
             <h2 className="font-medium mb-2">2) Select tool and click on the image</h2>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              {TOOL_SEQUENCE.map((tool) => (
+              {TOOL_SEQUENCE.map((tool, index) => (
                 <button
                   key={tool}
-                  className={`px-2 py-1 rounded border ${activeTool === tool ? 'bg-blue-600 text-white' : 'bg-white'}`}
+                  className={`px-2 py-1 rounded border flex items-center justify-between ${activeTool === tool ? 'bg-blue-600 text-white' : 'bg-white'}`}
                   onClick={() => setActiveTool(tool)}
                 >
-                  {TOOL_LABELS[tool]}
+                  <span>{TOOL_LABELS[tool]}</span>
+                  <span className={`text-xs ml-1 px-1 rounded ${activeTool === tool ? 'bg-blue-500' : 'bg-gray-200 text-gray-600'}`}>
+                    {index + 1}
+                  </span>
                 </button>
               ))}
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Press 1-6 to select tool, Tab to switch bike
             </div>
             <div className="mt-3 text-sm">
               Active on:{' '}
