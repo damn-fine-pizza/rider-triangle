@@ -31,7 +31,7 @@ function MeasurementRow({ label, estimatedMM, overrideMM, onOverride, onClear })
 
   return (
     <div className="flex items-center gap-2 text-sm py-1">
-      <span className="w-24 text-gray-600">{label}</span>
+      <span className="w-24 text-secondary">{label}</span>
       {isEditing ? (
         <input
           type="number"
@@ -39,7 +39,7 @@ function MeasurementRow({ label, estimatedMM, overrideMM, onOverride, onClear })
           onChange={(e) => setInputValue(e.target.value)}
           onBlur={handleEditSave}
           onKeyDown={handleKeyDown}
-          className="w-20 px-2 py-0.5 border rounded text-right"
+          className="w-20 px-2 py-0.5 border border-[--border-color] bg-[--bg-card] rounded text-right"
           autoFocus
         />
       ) : (
@@ -54,14 +54,14 @@ function MeasurementRow({ label, estimatedMM, overrideMM, onOverride, onClear })
       {isOverridden && (
         <button
           onClick={onClear}
-          className="text-xs text-gray-400 hover:text-red-600"
+          className="text-xs text-muted hover:text-red-600"
           title="Reset to estimated"
         >
           reset
         </button>
       )}
       {!isOverridden && (
-        <span className="text-xs text-gray-400">(est.)</span>
+        <span className="text-xs text-muted">(est.)</span>
       )}
     </div>
   );
@@ -116,7 +116,7 @@ export function RiderProfile({ riderHook }) {
         <select
           value={activeId}
           onChange={(e) => setActiveProfile(e.target.value)}
-          className="flex-1 px-2 py-1 border rounded text-sm"
+          className="flex-1 px-2 py-1 border border-[--border-color] bg-[--bg-card] rounded text-sm"
         >
           {profileIds.map((id) => (
             <option key={id} value={id}>
@@ -144,7 +144,7 @@ export function RiderProfile({ riderHook }) {
 
       {/* Profile name */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">Name:</span>
+        <span className="text-sm text-secondary">Name:</span>
         {isEditingName ? (
           <input
             type="text"
@@ -155,7 +155,7 @@ export function RiderProfile({ riderHook }) {
               if (e.key === 'Enter') handleNameSave();
               if (e.key === 'Escape') setIsEditingName(false);
             }}
-            className="flex-1 px-2 py-0.5 border rounded text-sm"
+            className="flex-1 px-2 py-0.5 border border-[--border-color] bg-[--bg-card] rounded text-sm"
             autoFocus
           />
         ) : (
@@ -170,21 +170,21 @@ export function RiderProfile({ riderHook }) {
 
       {/* Height input */}
       <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-600">Height:</label>
+        <label className="text-sm text-secondary">Height:</label>
         <input
           type="number"
           value={activeProfile.heightCm}
           onChange={(e) => setHeight(parseInt(e.target.value, 10) || 170)}
-          className="w-20 px-2 py-1 border rounded text-sm text-right"
+          className="w-20 px-2 py-1 border border-[--border-color] bg-[--bg-card] rounded text-sm text-right"
           min={100}
           max={250}
         />
-        <span className="text-sm text-gray-500">cm</span>
+        <span className="text-sm text-muted">cm</span>
       </div>
 
       {/* Body measurements */}
-      <div className="border-t pt-2">
-        <div className="text-xs text-gray-500 mb-1">
+      <div className="border-t border-[--border-color] pt-2">
+        <div className="text-xs text-muted mb-1">
           Click values to override, or use estimates:
         </div>
         <MeasurementRow
@@ -211,31 +211,27 @@ export function RiderProfile({ riderHook }) {
       </div>
 
       {/* Seat position */}
-      <div className="border-t pt-2">
-        <div className="text-sm text-gray-600 mb-1">Seat position:</div>
+      <div className="border-t border-[--border-color] pt-2">
+        <div className="text-sm text-secondary mb-1">Seat position:</div>
         <div className="flex gap-2">
           {Object.entries(SEAT_POSITIONS).map(([key, { label }]) => (
             <button
               key={key}
               onClick={() => setSeatPosition(key)}
-              className={`px-3 py-1 text-sm rounded border ${
-                activeProfile.seatPosition === key
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white hover:bg-gray-50'
-              }`}
+              className={activeProfile.seatPosition === key ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
             >
               {label}
             </button>
           ))}
         </div>
-        <div className="text-xs text-gray-500 mt-1">
+        <div className="text-xs text-muted mt-1">
           Affects hip angle calculation based on seat rail position
         </div>
       </div>
 
       {/* Summary */}
       {measurements && (
-        <div className="border-t pt-2 text-xs text-gray-600">
+        <div className="border-t border-[--border-color] pt-2 text-xs text-secondary">
           <div className="font-medium mb-1">Effective measurements:</div>
           <div className="grid grid-cols-2 gap-x-4">
             <span>Inseam: {measurements.inseam} mm</span>

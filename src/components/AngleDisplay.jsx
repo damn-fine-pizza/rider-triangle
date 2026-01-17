@@ -17,7 +17,7 @@ function AngleRow({ angleType, value, ridingStyle }) {
       >
         {formatAngle(value)}
       </div>
-      <div className="flex-1 text-xs text-gray-500 truncate" title={zone.message}>
+      <div className="flex-1 text-xs text-muted truncate" title={zone.message}>
         {zone.message}
       </div>
     </div>
@@ -85,7 +85,7 @@ function AngleComparisonTable({ anglesA, anglesB, labelA, labelB, colorA, colorB
               : null;
 
           return (
-            <tr key={type} className="border-b border-gray-100">
+            <tr key={type} className="border-b border-[--border-color]">
               <td className="py-1.5 font-medium">{COMFORT_ZONES[type].label}</td>
               <td className="py-1.5">
                 <span className={`px-1.5 py-0.5 rounded text-xs ${zoneA.colorClass || ''}`}>
@@ -143,7 +143,7 @@ export function AngleDisplay({
 
   if (!hasAngles && !showComparison) {
     return (
-      <div className="text-sm text-gray-500 py-2">
+      <div className="text-sm text-muted py-2">
         Place all markers (seat, peg, bar) and complete calibration to see angles.
       </div>
     );
@@ -191,11 +191,7 @@ export function RidingStyleSelector({ value, onChange }) {
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`px-2 py-1 text-xs rounded border transition-colors ${
-            value === key
-              ? 'bg-gray-900 text-white border-gray-900'
-              : 'bg-white hover:bg-gray-50 border-gray-300'
-          }`}
+          className={value === key ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
           title={style.description}
         >
           {style.label}

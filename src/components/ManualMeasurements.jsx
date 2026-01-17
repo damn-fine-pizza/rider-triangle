@@ -9,20 +9,20 @@ function MeasurementInput({ label, hint, value, onChange, unit = 'mm' }) {
   return (
     <div className="flex items-center gap-2">
       <label className="flex-1 text-sm">
-        <span className="block text-gray-700">{label}</span>
-        {hint && <span className="block text-xs text-gray-500">{hint}</span>}
+        <span className="block text-secondary">{label}</span>
+        {hint && <span className="block text-xs text-muted">{hint}</span>}
       </label>
       <div className="flex items-center gap-1">
         <input
           type="number"
           value={value ?? ''}
           onChange={(e) => onChange(e.target.value)}
-          className="w-20 px-2 py-1 border rounded text-sm text-right"
+          className="w-20 px-2 py-1 border border-[--border-color] bg-[--bg-card] rounded text-sm text-right"
           placeholder="—"
           min={0}
           step={1}
         />
-        <span className="text-xs text-gray-500 w-6">{unit}</span>
+        <span className="text-xs text-muted w-6">{unit}</span>
       </div>
     </div>
   );
@@ -52,15 +52,15 @@ export function ManualMeasurements({ bikeKey, measurementHook, bikeLabel, bikeCo
         />
         <span className="font-medium text-sm">{bikeLabel}</span>
         <div className="flex-1" />
-        <div className="flex rounded overflow-hidden border text-xs">
+        <div className="flex rounded overflow-hidden border border-[--border-color] text-xs">
           <button
-            className={`px-2 py-1 ${mode === 'photo' ? 'bg-gray-900 text-white' : 'bg-white'}`}
+            className={mode === 'photo' ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
             onClick={() => handleModeChange('photo')}
           >
             Photo
           </button>
           <button
-            className={`px-2 py-1 ${mode === 'manual' ? 'bg-gray-900 text-white' : 'bg-white'}`}
+            className={mode === 'manual' ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
             onClick={() => handleModeChange('manual')}
           >
             Manual
@@ -71,7 +71,7 @@ export function ManualMeasurements({ bikeKey, measurementHook, bikeLabel, bikeCo
       {/* Manual measurements form */}
       {mode === 'manual' && (
         <div className="pl-5 space-y-2 border-l-2" style={{ borderColor: bikeColor }}>
-          <div className="text-xs text-gray-600 mb-2">
+          <div className="text-xs text-secondary mb-2">
             Measure from seat contact point. Use positive values.
           </div>
 
@@ -105,7 +105,7 @@ export function ManualMeasurements({ bikeKey, measurementHook, bikeLabel, bikeCo
 
           {/* Calculated distances */}
           {isComplete && (
-            <div className="pt-2 mt-2 border-t text-xs text-gray-600">
+            <div className="pt-2 mt-2 border-t border-[--border-color] text-xs text-secondary">
               <div className="font-medium mb-1">Calculated distances:</div>
               <div className="flex gap-4">
                 <span>Seat-Peg: {distances.seatPeg?.toFixed(0)} mm</span>
@@ -124,7 +124,7 @@ export function ManualMeasurements({ bikeKey, measurementHook, bikeLabel, bikeCo
       )}
 
       {mode === 'photo' && (
-        <div className="pl-5 text-xs text-gray-500">
+        <div className="pl-5 text-xs text-muted">
           Using photo-based calibration
         </div>
       )}

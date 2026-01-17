@@ -117,9 +117,9 @@ export function ExportButton({ containerRef, getShareState }) {
       {status && (
         <div
           className={`absolute right-0 mt-1 px-3 py-1.5 rounded text-sm font-medium ${
-            status === 'success' ? 'bg-green-100 text-green-800' :
-            status === 'error' ? 'bg-red-100 text-red-800' :
-            'bg-gray-100 text-gray-800'
+            status === 'success' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+            status === 'error' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
+            'bg-[--bg-card-hover] text-secondary'
           }`}
         >
           {statusMessage}

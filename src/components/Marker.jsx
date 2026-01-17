@@ -112,7 +112,7 @@ export function Marker({ x, y, color, label, onDrag, scale = 1 }) {
         title={label}
         style={{ background: color }}
       />
-      <div className="text-xs mt-1 px-1 py-0.5 rounded bg-white/90 border shadow-sm whitespace-nowrap font-medium pointer-events-none">
+      <div className="text-xs mt-1 px-1 py-0.5 rounded bg-[--bg-card]/90 border border-[--border-color] shadow-sm whitespace-nowrap font-medium pointer-events-none">
         {label}
       </div>
     </div>

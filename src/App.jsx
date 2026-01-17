@@ -65,6 +65,45 @@ export default function App() {
   const [showSkeletonAngles, setShowSkeletonAngles] = useState(true);
   const containerRef = useRef(null);
 
+  // Panel open states (all collapsed by default)
+  const [openPanels, setOpenPanels] = useState({
+    wheel: false,
+    tool: false,
+    overlay: false,
+    distances: false,
+    measurement: false,
+    rider: false,
+    angles: false,
+  });
+
+  const togglePanel = useCallback((panelId) => {
+    setOpenPanels((prev) => ({ ...prev, [panelId]: !prev[panelId] }));
+  }, []);
+
+  const expandAllPanels = useCallback(() => {
+    setOpenPanels({
+      wheel: true,
+      tool: true,
+      overlay: true,
+      distances: true,
+      measurement: true,
+      rider: true,
+      angles: true,
+    });
+  }, []);
+
+  const collapseAllPanels = useCallback(() => {
+    setOpenPanels({
+      wheel: false,
+      tool: false,
+      overlay: false,
+      distances: false,
+      measurement: false,
+      rider: false,
+      angles: false,
+    });
+  }, []);
+
   // Calibration and markers hooks - pass activeBikes
   const calibration = useCalibration(activeBikes);
   const markersHook = useMarkers(bikeKeys);
@@ -305,7 +344,7 @@ export default function App() {
             draggable={false}
           />
         ) : (
-          <div className="w-96 h-64 bg-gray-200 flex items-center justify-center text-gray-500">
+          <div className="w-96 h-64 bg-[--bg-card-hover] flex items-center justify-center text-muted">
             No image uploaded
           </div>
         )}
@@ -435,59 +474,69 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full container-responsive py-3 sm:py-4">
-      <div className="flex items-start justify-between mb-2 gap-2">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-responsive-lg font-semibold truncate">
+      {/* Header - improved mobile visibility */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <h1 className="text-xl sm:text-2xl font-semibold">
             Riding Position Comparison
-            {hasTwoBikes && (
-              <span className="text-lg font-normal text-muted ml-2">
-                {activeBikes[secondaryBike]?.label} vs {activeBikes[primaryBike]?.label}
-              </span>
-            )}
           </h1>
-          <p className="text-secondary mt-1">
-            Calibrate and overlay bikes to compare the rider triangle.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Dark mode toggle */}
-          <button
-            onClick={toggleTheme}
-            className="btn-ghost p-2"
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDark ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
-          {onboarding.isComplete && (
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Dark mode toggle */}
             <button
-              onClick={onboarding.restart}
-              className="btn-ghost text-sm flex items-center gap-1.5"
-              title="Show tutorial"
+              onClick={toggleTheme}
+              className="btn-ghost p-2"
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Help
+              {isDark ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
             </button>
-          )}
-          <Suspense fallback={<LoadingSpinner size="sm" />}>
-            <ExportButton containerRef={containerRef} getShareState={getShareState} />
-          </Suspense>
+            {onboarding.isComplete && (
+              <button
+                onClick={onboarding.restart}
+                className="btn-ghost text-sm flex items-center gap-1.5"
+                title="Show tutorial"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Help
+              </button>
+            )}
+            <Suspense fallback={<LoadingSpinner size="sm" />}>
+              <ExportButton containerRef={containerRef} getShareState={getShareState} />
+            </Suspense>
+          </div>
         </div>
+        {hasTwoBikes && (
+          <p className="text-base sm:text-lg text-secondary">
+            {activeBikes[secondaryBike]?.label} vs {activeBikes[primaryBike]?.label}
+          </p>
+        )}
+        <p className="text-sm text-muted mt-1">
+          Calibrate and overlay bikes to compare the rider triangle.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Controls */}
         <div className="xl:col-span-1 space-y-4">
+          {/* Collapse/Expand All buttons */}
+          <div className="flex gap-2 text-xs">
+            <button onClick={expandAllPanels} className="btn-toggle-inactive">
+              Expand All
+            </button>
+            <button onClick={collapseAllPanels} className="btn-toggle-inactive">
+              Collapse All
+            </button>
+          </div>
           {/* Bike Manager Toggle */}
           <div className="card p-4">
             <div className="flex items-center justify-between mb-2">
@@ -521,14 +570,14 @@ export default function App() {
                 {/* Bike selector for slots if more than 2 bikes exist */}
                 {Object.keys(bikes).length > 2 && (
                   <div className="pt-2 border-t text-sm">
-                    <p className="text-gray-600 mb-2">Select bikes to compare:</p>
+                    <p className="text-secondary mb-2">Select bikes to compare:</p>
                     {[0, 1].map((slot) => (
                       <div key={slot} className="flex items-center gap-2 mb-1">
                         <span className="w-16">Slot {slot + 1}:</span>
                         <select
                           value={activeSlots[slot] || ''}
                           onChange={(e) => bikeStore.setActiveSlot(slot, e.target.value)}
-                          className="flex-1 px-2 py-1 border rounded text-sm"
+                          className="flex-1 px-2 py-1 border border-[--border-color] bg-[--bg-card] rounded text-sm"
                         >
                           <option value="">Select...</option>
                           {Object.values(bikes).map((b) => (
@@ -545,13 +594,13 @@ export default function App() {
                 {/* Reset to defaults */}
                 <button
                   onClick={bikeStore.resetToDefaults}
-                  className="w-full text-xs text-gray-500 hover:text-gray-700 py-1"
+                  className="w-full text-xs text-muted hover:text-primary py-1"
                 >
                   Reset to default bikes
                 </button>
               </div>
             ) : (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-secondary">
                 {bikeKeys.map((key) => (
                   <div key={key} className="flex items-center gap-2 mb-1">
                     <div
@@ -566,7 +615,7 @@ export default function App() {
           </div>
 
           {/* Step 1: Wheel selection */}
-          <CollapsiblePanel title="Select wheel for calibration" stepNumber={1} defaultOpen={true}>
+          <CollapsiblePanel title="Select wheel for calibration" stepNumber={1} isOpen={openPanels.wheel} onToggle={() => togglePanel('wheel')}>
             {bikeKeys.map((key) => {
               const bike = activeBikes[key];
               if (!bike) return null;
@@ -584,14 +633,14 @@ export default function App() {
                   </div>
                   <div className="flex gap-2 text-sm">
                     <button
-                      className={`px-2 py-1 rounded border ${calibration.wheelChoice[key] === 'front' ? 'bg-gray-900 text-white' : 'bg-white'}`}
+                      className={calibration.wheelChoice[key] === 'front' ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
                       onClick={() => calibration.setWheel(key, 'front')}
                       disabled={!bike.tires?.front}
                     >
                       Front {bike.tires?.front ? `(${bike.tires.front})` : ''}
                     </button>
                     <button
-                      className={`px-2 py-1 rounded border ${calibration.wheelChoice[key] === 'rear' ? 'bg-gray-900 text-white' : 'bg-white'}`}
+                      className={calibration.wheelChoice[key] === 'rear' ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
                       onClick={() => calibration.setWheel(key, 'rear')}
                       disabled={!bike.tires?.rear}
                     >
@@ -599,7 +648,7 @@ export default function App() {
                     </button>
                   </div>
                   {calibration.outerDiameters[key] > 0 && (
-                    <div className="text-xs text-gray-600 mt-1">
+                    <div className="text-xs text-muted mt-1">
                       Estimated outer diameter: {calibration.outerDiameters[key]?.toFixed(1)} mm
                     </div>
                   )}
@@ -614,22 +663,22 @@ export default function App() {
           </CollapsiblePanel>
 
           {/* Step 2: Tool selection */}
-          <CollapsiblePanel title="Select tool and click on the image" stepNumber={2} defaultOpen={true}>
+          <CollapsiblePanel title="Select tool and click on the image" stepNumber={2} isOpen={openPanels.tool} onToggle={() => togglePanel('tool')}>
             <div className="grid grid-cols-2 gap-2 text-sm">
               {TOOL_SEQUENCE.map((tool, index) => (
                 <button
                   key={tool}
-                  className={`px-2 py-1 rounded border flex items-center justify-between ${activeTool === tool ? 'bg-blue-600 text-white' : 'bg-white'}`}
+                  className={`flex items-center justify-between ${activeTool === tool ? 'btn-toggle-active' : 'btn-toggle-inactive'}`}
                   onClick={() => setActiveTool(tool)}
                 >
                   <span>{TOOL_LABELS[tool]}</span>
-                  <span className={`text-xs ml-1 px-1 rounded ${activeTool === tool ? 'bg-blue-500' : 'bg-gray-200 text-gray-600'}`}>
+                  <span className={`text-xs ml-1 px-1 rounded ${activeTool === tool ? 'bg-[--accent]' : 'bg-[--bg-card-hover] text-muted'}`}>
                     {index + 1}
                   </span>
                 </button>
               ))}
             </div>
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-muted">
               Press 1-6 to select tool, Tab to switch bike
             </div>
             <div className="mt-3 text-sm">
@@ -640,7 +689,7 @@ export default function App() {
               {bikeKeys.map((key) => (
                 <button
                   key={key}
-                  className={`px-2 py-1 rounded border ${activeBike === key ? 'bg-gray-900 text-white' : 'bg-white'}`}
+                  className={activeBike === key ? 'btn-toggle-neutral-active' : 'btn-toggle-inactive'}
                   onClick={() => setActiveBike(key)}
                 >
                   {activeBikes[key]?.label.split(' ')[0]}
@@ -651,7 +700,7 @@ export default function App() {
 
           {/* Step 3: Overlay controls */}
           {hasTwoBikes && (
-            <CollapsiblePanel title="Overlay & visibility" stepNumber={3} defaultOpen={true}>
+            <CollapsiblePanel title="Overlay & visibility" stepNumber={3} isOpen={openPanels.overlay} onToggle={() => togglePanel('overlay')}>
               <div className="flex items-center gap-3 mb-2">
                 <label className="text-sm">{activeBikes[secondaryBike]?.label} Opacity</label>
                 <input
@@ -695,7 +744,7 @@ export default function App() {
                   Show angles
                 </label>
               </div>
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-secondary">
                 Tip: calibrate TOP/BOTTOM on the outer tire profile, then mark the rear axle center on
                 both bikes. Alignment is applied automatically.
               </div>
@@ -703,7 +752,7 @@ export default function App() {
           )}
 
           {/* Step 4: Results */}
-          <CollapsiblePanel title="Rider triangle distances (mm)" stepNumber={hasTwoBikes ? 4 : 3} defaultOpen={true}>
+          <CollapsiblePanel title="Rider triangle distances (mm)" stepNumber={hasTwoBikes ? 4 : 3} isOpen={openPanels.distances} onToggle={() => togglePanel('distances')}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left">
@@ -746,8 +795,8 @@ export default function App() {
           </CollapsiblePanel>
 
           {/* Step 5: Measurement Mode */}
-          <CollapsiblePanel title="Measurement Mode" stepNumber={hasTwoBikes ? 5 : 4} defaultOpen={false}>
-            <p className="text-xs text-gray-600 mb-3">
+          <CollapsiblePanel title="Measurement Mode" stepNumber={hasTwoBikes ? 5 : 4} isOpen={openPanels.measurement} onToggle={() => togglePanel('measurement')}>
+            <p className="text-xs text-secondary mb-3">
               Use Photo mode for image-based estimation, or Manual mode if you have exact measurements.
             </p>
             <div className="space-y-4">
@@ -764,14 +813,14 @@ export default function App() {
           </CollapsiblePanel>
 
           {/* Step 6: Rider Profile */}
-          <CollapsiblePanel title="Rider Profile" stepNumber={hasTwoBikes ? 6 : 5} defaultOpen={true}>
+          <CollapsiblePanel title="Rider Profile" stepNumber={hasTwoBikes ? 6 : 5} isOpen={openPanels.rider} onToggle={() => togglePanel('rider')}>
             <RiderProfile riderHook={riderProfile} />
           </CollapsiblePanel>
 
           {/* Step 7: Ergonomic Angles */}
-          <CollapsiblePanel title="Ergonomic Angles" stepNumber={hasTwoBikes ? 7 : 6} defaultOpen={true}>
+          <CollapsiblePanel title="Ergonomic Angles" stepNumber={hasTwoBikes ? 7 : 6} isOpen={openPanels.angles} onToggle={() => togglePanel('angles')}>
             <div className="mb-3">
-              <div className="text-xs text-gray-500 mb-1">Riding style:</div>
+              <div className="text-xs text-muted mb-1">Riding style:</div>
               <RidingStyleSelector value={ridingStyle} onChange={setRidingStyle} />
             </div>
             {hasTwoBikes ? (

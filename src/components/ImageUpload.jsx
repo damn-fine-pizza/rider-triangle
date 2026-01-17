@@ -98,8 +98,8 @@ export function ImageUpload({ onUpload, className = '' }) {
           transition-colors duration-200
           ${
             isDragging
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+              ? 'border-[--accent] bg-blue-50 dark:bg-blue-900/30'
+              : 'border-[--border-color] hover:border-[--accent] hover:bg-[--bg-card-hover]'
           }
         `}
       >
@@ -111,7 +111,7 @@ export function ImageUpload({ onUpload, className = '' }) {
           className="hidden"
         />
 
-        <div className="text-gray-500">
+        <div className="text-muted">
           <svg
             className="mx-auto h-10 w-10 mb-2"
             fill="none"

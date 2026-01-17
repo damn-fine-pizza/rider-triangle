@@ -1,22 +1,31 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 /**
  * Collapsible panel for mobile-friendly UI.
- * Panels can be expanded/collapsed with a header toggle.
+ * Supports both controlled (isOpen prop) and uncontrolled (defaultOpen) modes.
  */
 export function CollapsiblePanel({
   title,
   children,
   defaultOpen = true,
+  isOpen: controlledIsOpen,
+  onToggle,
   stepNumber,
   badge,
   className = '',
 }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const isControlled = controlledIsOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+
+  const isOpen = isControlled ? controlledIsOpen : internalOpen;
 
   const toggleOpen = useCallback(() => {
-    setIsOpen((prev) => !prev);
-  }, []);
+    if (isControlled && onToggle) {
+      onToggle();
+    } else {
+      setInternalOpen((prev) => !prev);
+    }
+  }, [isControlled, onToggle]);
 
   return (
     <div className={`card overflow-hidden ${className}`}>
