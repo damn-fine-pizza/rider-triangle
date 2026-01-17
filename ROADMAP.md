@@ -387,23 +387,27 @@ PWA installation requires:
 - **PNG icons:** Required (192x192 and 512x512 minimum) - SVG alone not sufficient
 
 ### Tasks
-- [ ] Create PNG icons (192x192, 512x512) from existing SVG
-- [ ] Create `useInstallPrompt` hook to handle `beforeinstallprompt` event
-- [ ] Create `InstallBanner` component with platform-specific guidance
-- [ ] Add Playwright E2E tests for PWA functionality
-- [ ] Update vite.config.js with PNG icons in manifest
+- [x] Create PNG icons (192x192, 512x512) from existing SVG
+- [x] Create `useInstallPrompt` hook to handle `beforeinstallprompt` event
+- [x] Create `InstallBanner` component with platform-specific guidance
+- [x] Fix dark mode label in bike preview (measurement text outline)
+- [x] Add Playwright E2E tests for PWA functionality (iOS + Android)
+- [x] Update vite.config.js with PNG icons in manifest
 
 ### Files
-| File | Action |
+| File | Status |
 |------|--------|
-| `public/icon-192.png` | Create - 192x192 PNG icon |
-| `public/icon-512.png` | Create - 512x512 PNG icon |
-| `src/hooks/useInstallPrompt.js` | Create - PWA install hook |
-| `src/components/InstallBanner.jsx` | Create - Install prompt UI |
-| `vite.config.js` | Update - add PNG icons to manifest |
-| `e2e/pwa.spec.js` | Create - Playwright PWA tests |
-| `playwright.config.js` | Create - Playwright configuration |
-| `package.json` | Update - add Playwright dependency |
+| `public/icon-192.png` | ✅ Created - 192x192 PNG icon |
+| `public/icon-512.png` | ✅ Created - 512x512 PNG icon |
+| `public/apple-touch-icon.png` | ✅ Created - 180x180 for iOS |
+| `src/hooks/useInstallPrompt.js` | ✅ Created - PWA install hook |
+| `src/components/InstallBanner.jsx` | ✅ Created - Install prompt UI |
+| `vite.config.js` | ✅ Updated - PNG icons in manifest |
+| `src/App.jsx` | ✅ Updated - InstallBanner integration, dark mode fix |
+| `e2e/pwa.spec.js` | ✅ Created - Playwright PWA tests |
+| `playwright.config.js` | ✅ Created - Playwright configuration |
+| `package.json` | ✅ Updated - Playwright dependency |
+| `scripts/generate-icons.js` | ✅ Created - Icon generation script |
 
 ---
 

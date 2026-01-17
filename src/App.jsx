@@ -7,6 +7,7 @@ import { useMeasurementMode } from './hooks/useMeasurementMode';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useTheme } from './hooks/useTheme';
 import { useImage } from './hooks/useImage';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { Marker } from './components/Marker';
 import { CalibrationMarker } from './components/CalibrationMarker';
 import { ClickGuide } from './components/ClickGuide';
@@ -24,6 +25,7 @@ const ExportButton = lazy(() =>
   import('./components/ExportButton').then((m) => ({ default: m.ExportButton }))
 );
 import { OnboardingOverlay } from './components/OnboardingOverlay';
+import { InstallBanner } from './components/InstallBanner';
 import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
 import { hapticMedium, hapticSuccess } from './utils/haptics';
 
@@ -119,6 +121,9 @@ export default function App() {
 
   // Theme (dark/light mode)
   const { isDark, toggleTheme } = useTheme();
+
+  // PWA install prompt
+  const installPrompt = useInstallPrompt();
 
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
@@ -370,7 +375,9 @@ export default function App() {
                   fill={bike.color}
                   fontSize={11}
                   fontWeight="bold"
-                  style={{ textShadow: '0 0 3px white, 0 0 3px white' }}
+                  stroke="var(--bg-card)"
+                  strokeWidth={3}
+                  paintOrder="stroke fill"
                 >
                   {Math.round(calibration.outerDiameters[bikeKey])} mm
                 </text>
@@ -899,6 +906,16 @@ export default function App() {
         onPrev={onboarding.prevStep}
         onSkip={onboarding.skip}
       />
+
+      {/* PWA install banner */}
+      {installPrompt.shouldShowBanner && (
+        <InstallBanner
+          platform={installPrompt.platform}
+          canPrompt={installPrompt.canPrompt}
+          onInstall={installPrompt.promptInstall}
+          onDismiss={installPrompt.dismiss}
+        />
+      )}
     </div>
   );
 }
