@@ -30,9 +30,12 @@ src/
 │   ├── Marker.jsx        # Draggable point with mouse/touch support
 │   └── ClickGuide.jsx    # Instruction tooltip
 ├── hooks/
-│   └── useImage.js       # Image loading hook
+│   ├── useImage.js       # Image loading hook
+│   ├── useCalibration.js # Calibration state & calculations
+│   └── useMarkers.js     # Rider triangle markers state
 ├── utils/
-│   └── tire.js           # Tire spec parsing and diameter calculation
+│   ├── tire.js           # Tire spec parsing and diameter calculation
+│   └── geometry.js       # Distance, scale, translation calculations
 └── data/
     ├── bikes.js          # Bike configurations (uses imageProvider)
     └── imageProvider.js  # Abstraction for image URLs (swappable)
@@ -47,27 +50,32 @@ src/
 
 ## Architecture
 
+### Hooks
+
+- **useCalibration(bikes)** - Manages wheel selection, calibration points, axle positions, and derived calculations (pxPerMM, scale, translation)
+- **useMarkers(bikeKeys)** - Manages rider triangle markers (seat, peg, bar) and distance calculations
+- **useImage(src)** - Tracks image loading and natural dimensions
+
 ### Image Provider Pattern
 
-`src/data/imageProvider.js` abstracts image source resolution. Currently uses external URLs from moto.suzuki.it. Can be swapped to:
-- Local bundle (`/images/vstrom.jpg`)
-- Custom CDN
-- Backend proxy
+`src/data/imageProvider.js` abstracts image source resolution. Currently uses external URLs from moto.suzuki.it. Can be swapped to local bundle, custom CDN, or backend proxy.
 
 ### Calibration Flow
 
 1. User selects wheel (front/rear) for each bike
-2. Clicks TOP and BOTTOM points on tire sidewall
-3. Clicks rear axle center
-4. App calculates px-to-mm ratio from known tire diameter
-5. Second bike image is scaled/translated to align axles
+2. Clicks TOP and BOTTOM points on tire sidewall (auto-advances)
+3. Clicks rear axle center (auto-advances)
+4. Places rider triangle points: seat, footpeg, handlebar
+5. App calculates px-to-mm ratio and aligns images
 
-### Key Calculations
+### Key Calculations (in `src/utils/geometry.js`)
 
-- `pxPerMM` - Pixel-to-millimeter ratio from tire calibration
-- `scaleB` - Scale factor normalizing second bike to first bike's ratio
-- `translateB` - Translation to align rear axles
-- `mmBetween()` - Distance in mm between rider triangle points
+- `distance(a, b)` - Euclidean distance between points
+- `calculatePxPerMM(calibPts, tireDiameter)` - Pixel-to-mm ratio
+- `calculateScale(pxPerMM_A, pxPerMM_B)` - Scale factor for alignment
+- `calculateTranslation(axleA, axleB, scale)` - Translation for axle alignment
+- `distanceInMM(pointA, pointB, pxPerMM)` - Real-world distance
+- `angleBetween(a, vertex, c)` - Angle calculation (for future ergonomics)
 
 ### PWA Features
 
@@ -75,16 +83,7 @@ src/
 - External images cached for 30 days
 - Installable on mobile/desktop
 
-## Known Issues (Milestone 0)
-
-Current code has bugs inherited from original ChatGPT prototype:
-- Marker drag uses wrong coordinate system
-- Moving one point can affect others
-- Calibration procedure requires trial and error
-
-See `ROADMAP.md` for fix plan.
-
 ## Legacy
 
-- `RAW.md` - Original ChatGPT prototype (buggy, for reference only)
+- `RAW.md` - Original ChatGPT prototype (for reference only)
 - `RAW-DESCRIPTION.md` - Product vision document (priority)

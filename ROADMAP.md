@@ -4,35 +4,35 @@ Goal: Evolve into a self-service Cycle Ergo alternative - upload bike photos, in
 
 ---
 
-## Milestone 0: Stabilization & Refactoring ⬅️ CURRENT
+## Milestone 0: Stabilization & Refactoring ✅ COMPLETE
 
 Fix known bugs and prepare architecture for extensibility.
 
-### Known Issues
-- Overlay alignment imprecise
-- Moving one point affects others unexpectedly
-- Calibration procedure confusing (trial and error needed)
-- Hardcoded bikes only
+### Fixed Issues
+- ~~Overlay alignment imprecise~~ → Proper scale/translate calculations
+- ~~Moving one point affects others unexpectedly~~ → Fixed Marker drag using delta
+- ~~Calibration procedure confusing~~ → Auto-advance tool after each click
+- Hardcoded bikes only → (addressed in Milestone 1)
 
-### Tasks
-- [ ] Refactor state into dedicated hooks (`useCalibration`, `useMarkers`)
-- [ ] Fix Marker drag (use delta from click, not offsetLeft/Top)
-- [ ] Extract geometry calculations to `src/utils/geometry.js`
-- [ ] Add reset/clear functionality per bike
-- [ ] Auto-advance tool after point placement
+### Completed Tasks
+- [x] Refactor state into dedicated hooks (`useCalibration`, `useMarkers`)
+- [x] Fix Marker drag (use delta from click, not offsetLeft/Top)
+- [x] Extract geometry calculations to `src/utils/geometry.js`
+- [x] Add reset/clear functionality per bike
+- [x] Auto-advance tool after point placement
 
-### Files
-| File | Action |
+### Files Created/Modified
+| File | Status |
 |------|--------|
-| `src/hooks/useCalibration.js` | Create |
-| `src/hooks/useMarkers.js` | Create |
-| `src/utils/geometry.js` | Create |
-| `src/components/Marker.jsx` | Fix drag |
-| `src/App.jsx` | Simplify |
+| `src/hooks/useCalibration.js` | ✅ Created |
+| `src/hooks/useMarkers.js` | ✅ Created |
+| `src/utils/geometry.js` | ✅ Created |
+| `src/components/Marker.jsx` | ✅ Fixed |
+| `src/App.jsx` | ✅ Refactored |
 
 ---
 
-## Milestone 1: Custom Image Upload
+## Milestone 1: Custom Image Upload ⬅️ NEXT
 
 Allow users to upload their own bike photos instead of hardcoded URLs.
 
