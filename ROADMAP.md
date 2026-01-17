@@ -21,7 +21,8 @@
 | 7 - Export & Share | ✅ Complete | PNG export, shareable links |
 | 8 - Mobile & Polish | ✅ Complete | Touch, wizard, dark mode, accessibility |
 | 8.5 - Performance | ✅ Complete | Lazy loading, IndexedDB, compression |
-| 9 - Bike Database | ⬅️ Next | Pre-configured popular bikes |
+| 8.6 - PWA Install | ⬅️ Next | PNG icons, install prompt, iOS banner, PWA tests |
+| 9 - Bike Database | Planned | Pre-configured popular bikes |
 | 10 - Fit Recommendations | Planned | AI-powered suggestions |
 | 11 - Multi-Position Analysis | Planned | Sport/touring/commute modes |
 | 12 - Session History | Planned | Compare across time |
@@ -372,6 +373,37 @@ With real measurements, user gets precise ergonomic analysis.
 | `src/utils/indexedDB.js` | ✅ Created - IndexedDB wrapper |
 | `src/hooks/useBikeStore.js` | ✅ Updated - compression + IndexedDB |
 | `src/App.jsx` | ✅ Updated - React.lazy for ExportButton |
+
+---
+
+## Milestone 8.6: PWA Install Prompt
+
+**Goal:** Enable proper PWA installation on mobile devices with custom install prompts.
+
+### Background
+PWA installation requires:
+- **Android/Chrome:** Listens for `beforeinstallprompt` event, shows custom banner
+- **iOS/Safari:** No automatic prompt - must guide users to Share → Add to Home Screen
+- **PNG icons:** Required (192x192 and 512x512 minimum) - SVG alone not sufficient
+
+### Tasks
+- [ ] Create PNG icons (192x192, 512x512) from existing SVG
+- [ ] Create `useInstallPrompt` hook to handle `beforeinstallprompt` event
+- [ ] Create `InstallBanner` component with platform-specific guidance
+- [ ] Add Playwright E2E tests for PWA functionality
+- [ ] Update vite.config.js with PNG icons in manifest
+
+### Files
+| File | Action |
+|------|--------|
+| `public/icon-192.png` | Create - 192x192 PNG icon |
+| `public/icon-512.png` | Create - 512x512 PNG icon |
+| `src/hooks/useInstallPrompt.js` | Create - PWA install hook |
+| `src/components/InstallBanner.jsx` | Create - Install prompt UI |
+| `vite.config.js` | Update - add PNG icons to manifest |
+| `e2e/pwa.spec.js` | Create - Playwright PWA tests |
+| `playwright.config.js` | Create - Playwright configuration |
+| `package.json` | Update - add Playwright dependency |
 
 ---
 
