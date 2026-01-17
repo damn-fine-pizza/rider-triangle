@@ -2,9 +2,16 @@ import { useEffect, useRef } from 'react';
 
 /**
  * Draggable marker component for placing points on images.
- * Fixed drag logic: uses delta from initial click position.
+ * Supports scaled containers via the scale prop.
+ *
+ * @param {number} x - X position in local coordinates
+ * @param {number} y - Y position in local coordinates
+ * @param {string} color - Marker color
+ * @param {string} label - Marker label
+ * @param {function} onDrag - Callback with (newX, newY) in local coordinates
+ * @param {number} scale - Scale factor of the parent container (default 1)
  */
-export function Marker({ x, y, color, label, onDrag }) {
+export function Marker({ x, y, color, label, onDrag, scale = 1 }) {
   const ref = useRef(null);
   const dragState = useRef({
     dragging: false,
@@ -52,13 +59,17 @@ export function Marker({ x, y, color, label, onDrag }) {
       const { clientX, clientY } = getClientPos(e);
       const { startX, startY, startMouseX, startMouseY } = dragState.current;
 
-      // Calculate delta from initial mouse position
+      // Calculate delta from initial mouse position (in screen pixels)
       const deltaX = clientX - startMouseX;
       const deltaY = clientY - startMouseY;
 
-      // New position = start position + delta
-      const newX = startX + deltaX;
-      const newY = startY + deltaY;
+      // Convert screen delta to local coordinates by dividing by scale
+      const localDeltaX = deltaX / scale;
+      const localDeltaY = deltaY / scale;
+
+      // New position = start position + local delta
+      const newX = startX + localDeltaX;
+      const newY = startY + localDeltaY;
 
       onDrag && onDrag(newX, newY);
     };
@@ -82,7 +93,7 @@ export function Marker({ x, y, color, label, onDrag }) {
       window.removeEventListener('touchmove', move);
       window.removeEventListener('touchend', up);
     };
-  }, [x, y, onDrag]);
+  }, [x, y, onDrag, scale]);
 
   return (
     <div

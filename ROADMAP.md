@@ -32,28 +32,29 @@ Fix known bugs and prepare architecture for extensibility.
 
 ---
 
-## Milestone 1: Custom Image Upload ⬅️ NEXT
+## Milestone 1: Custom Image Upload ✅ COMPLETE
 
 Allow users to upload their own bike photos instead of hardcoded URLs.
 
-### Tasks
-- [ ] Image upload component (drag & drop + file picker)
-- [ ] Store images in browser (IndexedDB or base64)
-- [ ] Dynamic bike slots (add/remove)
-- [ ] Manual tire spec input
-- [ ] Persist session in localStorage
+### Completed Tasks
+- [x] Image upload component (drag & drop + file picker)
+- [x] Store images in browser (base64 in localStorage)
+- [x] Dynamic bike slots (add/remove)
+- [x] Manual tire spec input
+- [x] Persist session in localStorage
 
-### Files
-| File | Action |
+### Files Created
+| File | Status |
 |------|--------|
-| `src/components/ImageUpload.jsx` | Create |
-| `src/components/BikeCard.jsx` | Create |
-| `src/hooks/useBikeStore.js` | Create |
-| `src/utils/storage.js` | Create |
+| `src/components/ImageUpload.jsx` | ✅ Created |
+| `src/components/BikeCard.jsx` | ✅ Created |
+| `src/hooks/useBikeStore.js` | ✅ Created |
+| `src/utils/storage.js` | ✅ Created |
+| `src/App.jsx` | ✅ Updated for dynamic bikes |
 
 ---
 
-## Milestone 2: Rider Profile
+## Milestone 2: Rider Profile ⬅️ NEXT
 
 Add rider body measurements for angle calculations.
 
