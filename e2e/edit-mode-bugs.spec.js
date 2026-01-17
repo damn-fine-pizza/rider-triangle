@@ -76,7 +76,7 @@ test.describe('Edit Mode Bug Tests', () => {
     }
     await page.waitForTimeout(500);
 
-    // Verify tool advanced (should be 2/6 now)
+    // Verify tool advanced (should be 2 di 6 now)
     const headerPill = page.locator('[data-testid="edit-mode-header"]');
     const afterPlaceText = await headerPill.textContent();
     console.log(`After placing marker: ${afterPlaceText}`);
@@ -92,12 +92,12 @@ test.describe('Edit Mode Bug Tests', () => {
     }
     await page.waitForTimeout(500);
 
-    // Verify the tool indicator resets to first tool (1/6)
+    // Verify the tool indicator resets to first tool (1 di 6)
     const afterResetText = await headerPill.textContent();
     console.log(`After reset: ${afterResetText}`);
 
-    // Should reset to first tool (1/6)
-    expect(afterResetText).toContain('1/6');
+    // Should reset to first tool (1 di 6)
+    expect(afterResetText).toContain('1 di 6');
   });
 
   // =========================================================================
@@ -213,8 +213,8 @@ test.describe('Edit Mode Bug Tests', () => {
     const initialText = await headerPill.textContent();
     console.log(`Initial header: ${initialText}`);
 
-    // Should start with first tool (1/6)
-    expect(initialText).toContain('1/6');
+    // Should start with first tool (1 di 6)
+    expect(initialText).toContain('1 di 6');
 
     // Click/tap to place a marker
     const tapX = box.x + box.width / 2;
@@ -227,12 +227,12 @@ test.describe('Edit Mode Bug Tests', () => {
     }
     await page.waitForTimeout(500);
 
-    // Check if tool advanced (should now be 2/6)
+    // Check if tool advanced (should now be 2 di 6)
     const afterText = await headerPill.textContent();
     console.log(`After click/tap header: ${afterText}`);
 
     // Tool should have advanced
-    expect(afterText).toContain('2/6');
+    expect(afterText).toContain('2 di 6');
   });
 
   // =========================================================================
@@ -253,7 +253,7 @@ test.describe('Edit Mode Bug Tests', () => {
     for (let i = 1; i <= 3; i++) {
       const currentText = await headerPill.textContent();
       console.log(`Before marker ${i}: ${currentText}`);
-      expect(currentText).toContain(`${i}/6`);
+      expect(currentText).toContain(`${i} di 6`);
 
       // Offset each click slightly
       const tapX = box.x + box.width / 3 + i * 50;
@@ -267,9 +267,9 @@ test.describe('Edit Mode Bug Tests', () => {
       await page.waitForTimeout(400);
     }
 
-    // Should now be at tool 4/6
+    // Should now be at tool 4 di 6
     const finalText = await headerPill.textContent();
     console.log(`After 3 markers: ${finalText}`);
-    expect(finalText).toContain('4/6');
+    expect(finalText).toContain('4 di 6');
   });
 });

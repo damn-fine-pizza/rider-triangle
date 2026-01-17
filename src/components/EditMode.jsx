@@ -84,21 +84,16 @@ export function EditMode({
   // Convert screen coordinates to image coordinates
   const screenToImageCoords = useCallback(
     (clientX, clientY) => {
-      if (!containerRef.current) return { x: 0, y: 0 };
+      if (!imageRef.current) return { x: 0, y: 0 };
 
-      const rect = containerRef.current.getBoundingClientRect();
-      let x = clientX - rect.left;
-      let y = clientY - rect.top;
-
-      // Account for zoom and pan
-      if (scale !== 1) {
-        x = (x - position.x) / scale;
-        y = (y - position.y) / scale;
-      }
+      // Use image wrapper rect, not container - image is centered inside container
+      const rect = imageRef.current.getBoundingClientRect();
+      const x = (clientX - rect.left) / scale;
+      const y = (clientY - rect.top) / scale;
 
       return { x, y };
     },
-    [scale, position]
+    [scale]
   );
 
   // Handle touch start
