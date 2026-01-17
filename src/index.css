@@ -1,3 +1,142 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Theme CSS custom properties */
+:root {
+  --bg-primary: theme('colors.gray.50');
+  --bg-card: theme('colors.white');
+  --bg-card-hover: theme('colors.gray.50');
+  --text-primary: theme('colors.gray.900');
+  --text-secondary: theme('colors.gray.700');
+  --text-muted: theme('colors.gray.500');
+  --border-color: theme('colors.gray.200');
+  --accent: theme('colors.blue.600');
+  --accent-hover: theme('colors.blue.700');
+}
+
+.dark {
+  --bg-primary: theme('colors.gray.900');
+  --bg-card: theme('colors.gray.800');
+  --bg-card-hover: theme('colors.gray.700');
+  --text-primary: theme('colors.white');
+  --text-secondary: theme('colors.gray.300');
+  --text-muted: theme('colors.gray.400');
+  --border-color: theme('colors.gray.700');
+  --accent: theme('colors.blue.500');
+  --accent-hover: theme('colors.blue.400');
+}
+
+/* Apply theme variables */
+@layer base {
+  body {
+    @apply bg-[--bg-primary] text-[--text-primary] transition-colors duration-200;
+  }
+}
+
+/* Reusable card component */
+@layer components {
+  .card {
+    @apply bg-[--bg-card] rounded-2xl shadow;
+  }
+
+  .card-hover:hover {
+    @apply bg-[--bg-card-hover];
+  }
+
+  .text-primary {
+    color: var(--text-primary);
+  }
+
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply px-4 py-2 bg-[--accent] text-white rounded-lg font-medium;
+    @apply hover:bg-[--accent-hover] transition-colors;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 border rounded-lg font-medium;
+    @apply border-[--border-color] hover:bg-[--bg-card-hover] transition-colors;
+  }
+
+  .btn-ghost {
+    @apply px-3 py-1.5 text-[--text-muted] hover:text-[--text-primary];
+    @apply rounded-lg hover:bg-[--bg-card-hover] transition-colors;
+  }
+}
+
+/* Form input styling */
+@layer components {
+  .input {
+    @apply w-full px-3 py-2 border rounded-lg;
+    @apply border-[--border-color] bg-[--bg-card];
+    @apply focus:outline-none focus:ring-2 focus:ring-[--accent] focus:border-transparent;
+  }
+
+  .input-sm {
+    @apply px-2 py-1 text-sm;
+  }
+
+  /* Empty state */
+  .empty-state {
+    @apply flex flex-col items-center justify-center h-64 text-center p-6;
+  }
+}
+
+/* Responsive utilities */
+@layer utilities {
+  /* Mobile-first responsive spacing */
+  .container-responsive {
+    @apply px-3 sm:px-4 md:px-6;
+  }
+
+  /* Hide on mobile, show on larger screens */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+
+  /* Show only on mobile */
+  .show-mobile {
+    @apply block sm:hidden;
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-lg {
+    @apply text-xl sm:text-2xl;
+  }
+
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+}
+
+/* Touch-friendly tap targets */
+@layer utilities {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* Smooth transitions for theme changes */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    @apply transition-colors duration-200;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

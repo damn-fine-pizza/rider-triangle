@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { loadState, saveState, fileToBase64 } from '../utils/storage';
+import { loadState, saveState } from '../utils/storage';
 import { getImageUrl } from '../data/imageProvider';
+import { compressImage } from '../utils/imageCompression';
+import * as imageDB from '../utils/indexedDB';
 
 // Default bikes to show on first load (without uploaded images)
 const DEFAULT_BIKES = {
@@ -97,7 +99,17 @@ export function useBikeStore() {
     let img = null;
 
     if (file) {
-      img = await fileToBase64(file);
+      // Compress image before storing
+      img = await compressImage(file);
+
+      // Store in IndexedDB if supported
+      if (imageDB.isSupported()) {
+        try {
+          await imageDB.setItem(`img_${id}`, img);
+        } catch (e) {
+          console.warn('IndexedDB storage failed, using inline:', e);
+        }
+      }
     }
 
     setBikes((prev) => ({
@@ -134,7 +146,18 @@ export function useBikeStore() {
 
   // Update bike image
   const updateBikeImage = useCallback(async (id, file) => {
-    const img = await fileToBase64(file);
+    // Compress image before storing
+    const img = await compressImage(file);
+
+    // Store in IndexedDB if supported
+    if (imageDB.isSupported()) {
+      try {
+        await imageDB.setItem(`img_${id}`, img);
+      } catch (e) {
+        console.warn('IndexedDB storage failed, using inline:', e);
+      }
+    }
+
     updateBike(id, { img });
   }, [updateBike]);
 
@@ -156,7 +179,16 @@ export function useBikeStore() {
   }, []);
 
   // Remove a bike
-  const removeBike = useCallback((id) => {
+  const removeBike = useCallback(async (id) => {
+    // Remove image from IndexedDB
+    if (imageDB.isSupported()) {
+      try {
+        await imageDB.removeItem(`img_${id}`);
+      } catch (e) {
+        console.warn('Failed to remove image from IndexedDB:', e);
+      }
+    }
+
     setBikes((prev) => {
       const next = { ...prev };
       delete next[id];

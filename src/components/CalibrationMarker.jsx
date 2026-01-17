@@ -88,11 +88,16 @@ export function CalibrationMarker({ x, y, color, label, onDrag, scale = 1 }) {
   return (
     <div
       ref={ref}
-      className="absolute -translate-x-1/2 -translate-y-1/2 select-none cursor-grab active:cursor-grabbing z-10"
+      className="absolute -translate-x-1/2 -translate-y-1/2 select-none cursor-grab active:cursor-grabbing z-10 group"
       style={{ left: x, top: y }}
+      role="button"
+      aria-label={`Drag calibration ${label} marker`}
+      tabIndex={0}
     >
+      {/* Invisible larger touch target for mobile (44x44px min recommended) */}
+      <div className="absolute -inset-5 rounded-full" aria-hidden="true" />
       {/* Small crosshair marker */}
-      <div className="relative">
+      <div className="relative transition-transform group-hover:scale-125 group-active:scale-110">
         {/* Center dot */}
         <div
           className="w-2.5 h-2.5 rounded-full border border-white shadow-sm"
@@ -118,7 +123,7 @@ export function CalibrationMarker({ x, y, color, label, onDrag, scale = 1 }) {
       </div>
       {/* Label */}
       <div
-        className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] px-1 py-0.5 rounded bg-white/90 border shadow-sm whitespace-nowrap font-medium"
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] px-1 py-0.5 rounded bg-white/90 border shadow-sm whitespace-nowrap font-medium pointer-events-none"
         style={{ color }}
       >
         {label}
