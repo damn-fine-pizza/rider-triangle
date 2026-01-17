@@ -18,8 +18,8 @@
 | 4 - Visual Feedback | ✅ Complete | Skeleton overlay, comfort zones |
 | 5 - Real Measurements | ✅ Complete | Bypass photo estimation |
 | 6 - Calibration UX | ✅ Complete | Visual markers, keyboard shortcuts |
-| 7 - Export & Share | ⬅️ Next | PDF, image, shareable links |
-| 8 - Mobile & Polish | Planned | Touch, wizard, accessibility |
+| 7 - Export & Share | ✅ Complete | PNG export, shareable links |
+| 8 - Mobile & Polish | ⬅️ Next | Touch, wizard, accessibility |
 | 9 - Bike Database | Planned | Pre-configured popular bikes |
 | 10 - Fit Recommendations | Planned | AI-powered suggestions |
 | 11 - Multi-Position Analysis | Planned | Sport/touring/commute modes |
@@ -285,39 +285,35 @@ With real measurements, user gets precise ergonomic analysis.
 
 ---
 
-## Milestone 7: Export & Share ⬅️ NEXT
+## Milestone 7: Export & Share ✅ COMPLETE
 
 **Goal:** Allow users to save and share their comparison results.
 
-### Tasks
-- [ ] Export comparison as PNG image (canvas snapshot)
-- [ ] Export as PDF report with:
-  - Both bike images overlaid
-  - Rider profile summary
-  - Angle comparison table
-  - Recommendations
-- [ ] Generate shareable URL with encoded state
-- [ ] Import from shared URL
-- [ ] Save/load named sessions locally
-- [ ] Print-friendly CSS
-
-### Technical Notes
-- Use html2canvas for PNG export
-- Use jsPDF or browser print for PDF
-- URL state: compress with lz-string, encode with base64
-- Consider URL length limits (~2000 chars)
+### Completed Tasks
+- [x] Export comparison as PNG image (using html2canvas)
+- [x] Generate shareable URL with encoded state
+- [x] Copy share link to clipboard
+- [x] Export button with dropdown menu
+- [x] Fixed activeBike sync bug (useMemo → useEffect)
+- [x] Added functional tests for ergonomics calculations
 
 ### Files
-| File | Action |
+| File | Status |
 |------|--------|
-| `src/utils/export.js` | Create |
-| `src/components/ExportModal.jsx` | Create |
-| `src/components/ShareButton.jsx` | Create |
-| `src/hooks/useShareableState.js` | Create |
+| `src/utils/export.js` | ✅ Created - PNG export, URL encoding, sessions |
+| `src/components/ExportButton.jsx` | ✅ Created - Export dropdown UI |
+| `src/utils/ergonomics.test.js` | ✅ Created - Unit tests |
+| `vitest.config.js` | ✅ Created - Test configuration |
+| `package.json` | ✅ Updated - test scripts |
+
+### Deferred to Future Milestones
+- [ ] Export as PDF report
+- [ ] Import from shared URL
+- [ ] Save/load named sessions locally
 
 ---
 
-## Milestone 8: Mobile & Polish
+## Milestone 8: Mobile & Polish ⬅️ NEXT
 
 **Goal:** Final refinements for public release.
 

@@ -14,6 +14,7 @@ import { RiderProfile } from './components/RiderProfile';
 import { ManualMeasurements } from './components/ManualMeasurements';
 import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
 import { SkeletonOverlay } from './components/SkeletonOverlay';
+import { ExportButton } from './components/ExportButton';
 import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
 
 // Tool sequence for auto-advance
@@ -73,11 +74,11 @@ export default function App() {
   };
 
   // Sync activeBike when bikeKeys change
-  useMemo(() => {
-    if (primaryBike && !bikeKeys.includes(activeBike)) {
+  useEffect(() => {
+    if (primaryBike && (!activeBike || !bikeKeys.includes(activeBike))) {
       setActiveBike(primaryBike);
     }
-  }, [bikeKeys, activeBike, primaryBike]);
+  }, [bikeKeys, primaryBike]);
 
   // Calculate ergonomic angles for each bike
   const bikeAngles = useMemo(() => {
@@ -205,6 +206,20 @@ export default function App() {
     // Use photo-based calibration
     return markersHook.getDistances(bikeKey, calibration.pxPerMM[calibration.primaryBike]);
   };
+
+  // Get state for sharing (excludes images due to size)
+  const getShareState = useCallback(() => {
+    return {
+      markers: markersHook.markers,
+      calibPts: calibration.calibPts,
+      axle: calibration.axle,
+      wheelChoice: calibration.wheelChoice,
+      rider: riderProfile.profile,
+      ridingStyle,
+      manualMeasurements: measurementMode.manualMeasurements,
+      modes: measurementMode.modes,
+    };
+  }, [markersHook.markers, calibration, riderProfile.profile, ridingStyle, measurementMode]);
 
   // Handle adding a new bike
   const handleAddBike = useCallback(
@@ -399,19 +414,22 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full p-4 bg-gray-50">
-      <h1 className="text-2xl font-semibold mb-2">
-        Riding Position Comparison
-        {hasTwoBikes && (
-          <span className="text-lg font-normal text-gray-600 ml-2">
-            {activeBikes[secondaryBike]?.label} vs {activeBikes[primaryBike]?.label}
-          </span>
-        )}
-      </h1>
-      <p className="text-gray-700 mb-4">
-        Follow the steps below to calibrate and overlay the two bikes. Then position the three
-        points (Seat, Footpeg, Handlebar) on each image to compare the rider triangle. Measurements
-        are in millimeters, estimated from the selected tire size.
-      </p>
+      <div className="flex items-start justify-between mb-2">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            Riding Position Comparison
+            {hasTwoBikes && (
+              <span className="text-lg font-normal text-gray-600 ml-2">
+                {activeBikes[secondaryBike]?.label} vs {activeBikes[primaryBike]?.label}
+              </span>
+            )}
+          </h1>
+          <p className="text-gray-700 mt-1">
+            Calibrate and overlay bikes to compare the rider triangle.
+          </p>
+        </div>
+        <ExportButton containerRef={containerRef} getShareState={getShareState} />
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Controls */}
