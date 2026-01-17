@@ -4,6 +4,7 @@ import { useCalibration } from './hooks/useCalibration';
 import { useMarkers, MARKER_TYPES } from './hooks/useMarkers';
 import { useRiderProfile } from './hooks/useRiderProfile';
 import { useMeasurementMode } from './hooks/useMeasurementMode';
+import { useOnboarding } from './hooks/useOnboarding';
 import { useImage } from './hooks/useImage';
 import { Marker } from './components/Marker';
 import { CalibrationMarker } from './components/CalibrationMarker';
@@ -15,6 +16,8 @@ import { ManualMeasurements } from './components/ManualMeasurements';
 import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
 import { SkeletonOverlay } from './components/SkeletonOverlay';
 import { ExportButton } from './components/ExportButton';
+import { CollapsiblePanel } from './components/CollapsiblePanel';
+import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
 
 // Tool sequence for auto-advance
@@ -64,6 +67,9 @@ export default function App() {
 
   // Measurement mode hook (photo vs manual)
   const measurementMode = useMeasurementMode();
+
+  // Onboarding for first-time users
+  const onboarding = useOnboarding();
 
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
@@ -428,7 +434,21 @@ export default function App() {
             Calibrate and overlay bikes to compare the rider triangle.
           </p>
         </div>
-        <ExportButton containerRef={containerRef} getShareState={getShareState} />
+        <div className="flex items-center gap-2">
+          {onboarding.isComplete && (
+            <button
+              onClick={onboarding.restart}
+              className="px-3 py-1.5 text-gray-600 hover:text-gray-800 text-sm flex items-center gap-1.5"
+              title="Show tutorial"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Help
+            </button>
+          )}
+          <ExportButton containerRef={containerRef} getShareState={getShareState} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -512,8 +532,7 @@ export default function App() {
           </div>
 
           {/* Step 1: Wheel selection */}
-          <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">1) Select wheel for calibration</h2>
+          <CollapsiblePanel title="Select wheel for calibration" stepNumber={1} defaultOpen={true}>
             {bikeKeys.map((key) => {
               const bike = activeBikes[key];
               if (!bike) return null;
@@ -558,11 +577,10 @@ export default function App() {
                 </div>
               );
             })}
-          </div>
+          </CollapsiblePanel>
 
           {/* Step 2: Tool selection */}
-          <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">2) Select tool and click on the image</h2>
+          <CollapsiblePanel title="Select tool and click on the image" stepNumber={2} defaultOpen={true}>
             <div className="grid grid-cols-2 gap-2 text-sm">
               {TOOL_SEQUENCE.map((tool, index) => (
                 <button
@@ -595,12 +613,11 @@ export default function App() {
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsiblePanel>
 
           {/* Step 3: Overlay controls */}
           {hasTwoBikes && (
-            <div className="p-4 bg-white rounded-2xl shadow">
-              <h2 className="font-medium mb-2">3) Overlay & visibility</h2>
+            <CollapsiblePanel title="Overlay & visibility" stepNumber={3} defaultOpen={true}>
               <div className="flex items-center gap-3 mb-2">
                 <label className="text-sm">{activeBikes[secondaryBike]?.label} Opacity</label>
                 <input
@@ -648,12 +665,11 @@ export default function App() {
                 Tip: calibrate TOP/BOTTOM on the outer tire profile, then mark the rear axle center on
                 both bikes. Alignment is applied automatically.
               </div>
-            </div>
+            </CollapsiblePanel>
           )}
 
           {/* Step 4: Results */}
-          <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">4) Rider triangle distances (mm)</h2>
+          <CollapsiblePanel title="Rider triangle distances (mm)" stepNumber={hasTwoBikes ? 4 : 3} defaultOpen={true}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left">
@@ -693,11 +709,10 @@ export default function App() {
                 measurements.
               </div>
             )}
-          </div>
+          </CollapsiblePanel>
 
           {/* Step 5: Measurement Mode */}
-          <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">5) Measurement Mode</h2>
+          <CollapsiblePanel title="Measurement Mode" stepNumber={hasTwoBikes ? 5 : 4} defaultOpen={false}>
             <p className="text-xs text-gray-600 mb-3">
               Use Photo mode for image-based estimation, or Manual mode if you have exact measurements.
             </p>
@@ -712,17 +727,15 @@ export default function App() {
                 />
               ))}
             </div>
-          </div>
+          </CollapsiblePanel>
 
           {/* Step 6: Rider Profile */}
-          <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">6) Rider Profile</h2>
+          <CollapsiblePanel title="Rider Profile" stepNumber={hasTwoBikes ? 6 : 5} defaultOpen={true}>
             <RiderProfile riderHook={riderProfile} />
-          </div>
+          </CollapsiblePanel>
 
           {/* Step 7: Ergonomic Angles */}
-          <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">7) Ergonomic Angles</h2>
+          <CollapsiblePanel title="Ergonomic Angles" stepNumber={hasTwoBikes ? 7 : 6} defaultOpen={true}>
             <div className="mb-3">
               <div className="text-xs text-gray-500 mb-1">Riding style:</div>
               <RidingStyleSelector value={ridingStyle} onChange={setRidingStyle} />
@@ -751,7 +764,7 @@ export default function App() {
                 Complete calibration and place all markers (seat, peg, bar) to calculate angles.
               </div>
             )}
-          </div>
+          </CollapsiblePanel>
         </div>
 
         {/* Overlay stage */}
@@ -766,10 +779,24 @@ export default function App() {
                 {renderBikeLayer(secondaryBike, true)}
               </>
             ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                {bikeKeys.length === 0
-                  ? 'Add at least two bikes to compare'
-                  : 'Select a second bike to compare'}
+              <div className="flex flex-col items-center justify-center h-64 text-center p-6">
+                <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-700 mb-1">
+                  {bikeKeys.length === 0 ? 'No bikes selected' : 'Add another bike'}
+                </h3>
+                <p className="text-gray-500 max-w-xs mb-4">
+                  {bikeKeys.length === 0
+                    ? 'Click "Manage bikes" to upload your motorcycle photos and start comparing.'
+                    : 'Add a second bike to compare riding positions side by side.'}
+                </p>
+                <button
+                  onClick={() => setShowBikeManager(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                >
+                  Manage bikes
+                </button>
               </div>
             )}
           </div>
@@ -781,6 +808,17 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding overlay for first-time users */}
+      <OnboardingOverlay
+        isVisible={onboarding.isVisible}
+        currentStep={onboarding.currentStep}
+        currentStepIndex={onboarding.currentStepIndex}
+        totalSteps={onboarding.totalSteps}
+        onNext={onboarding.nextStep}
+        onPrev={onboarding.prevStep}
+        onSkip={onboarding.skip}
+      />
     </div>
   );
 }

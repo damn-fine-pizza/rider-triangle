@@ -98,15 +98,21 @@ export function Marker({ x, y, color, label, onDrag, scale = 1 }) {
   return (
     <div
       ref={ref}
-      className="absolute -translate-x-1/2 -translate-y-1/2 select-none cursor-grab active:cursor-grabbing z-10"
+      className="absolute -translate-x-1/2 -translate-y-1/2 select-none cursor-grab active:cursor-grabbing z-10 group"
       style={{ left: x, top: y }}
+      role="button"
+      aria-label={`Drag ${label} marker`}
+      tabIndex={0}
     >
+      {/* Invisible larger touch target for mobile (44x44px min recommended) */}
+      <div className="absolute -inset-4 rounded-full" aria-hidden="true" />
+      {/* Visual marker */}
       <div
-        className="w-4 h-4 rounded-full shadow-md border-2 border-white"
+        className="w-4 h-4 rounded-full shadow-md border-2 border-white transition-transform group-hover:scale-125 group-active:scale-110"
         title={label}
         style={{ background: color }}
       />
-      <div className="text-xs mt-1 px-1 py-0.5 rounded bg-white/90 border shadow-sm whitespace-nowrap font-medium">
+      <div className="text-xs mt-1 px-1 py-0.5 rounded bg-white/90 border shadow-sm whitespace-nowrap font-medium pointer-events-none">
         {label}
       </div>
     </div>

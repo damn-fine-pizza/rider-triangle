@@ -313,22 +313,22 @@ With real measurements, user gets precise ergonomic analysis.
 
 ---
 
-## Milestone 8: Mobile & Polish ⬅️ NEXT
+## Milestone 8: Mobile & Polish ⬅️ IN PROGRESS
 
 **Goal:** Final refinements for public release.
 
 ### UX Improvements
-- [ ] Guided wizard for first-time users (step-by-step onboarding)
-- [ ] Collapsible panels for mobile
-- [ ] Touch-optimized marker dragging (larger hit areas)
+- [x] Guided wizard for first-time users (step-by-step onboarding)
+- [x] Collapsible panels for mobile
+- [x] Touch-optimized marker dragging (larger hit areas)
 - [ ] Haptic feedback on mobile
 - [ ] Responsive layout refinements
 - [ ] Loading states and error handling
-- [ ] Empty states with helpful prompts
+- [x] Empty states with helpful prompts
 
 ### Accessibility
-- [ ] Keyboard navigation for all interactions
-- [ ] Screen reader labels (ARIA)
+- [x] Keyboard navigation for all interactions (1-6 keys, Tab)
+- [x] Screen reader labels (ARIA)
 - [ ] High contrast mode support
 - [ ] Reduced motion option
 
@@ -339,11 +339,14 @@ With real measurements, user gets precise ergonomic analysis.
 - [ ] IndexedDB for large image storage (vs localStorage limits)
 
 ### Files
-| File | Action |
+| File | Status |
 |------|--------|
-| `src/components/Wizard.jsx` | Create |
-| `src/components/OnboardingOverlay.jsx` | Create |
-| `src/hooks/useOnboarding.js` | Create |
+| `src/components/CollapsiblePanel.jsx` | ✅ Created |
+| `src/components/OnboardingOverlay.jsx` | ✅ Created |
+| `src/hooks/useOnboarding.js` | ✅ Created |
+| `src/components/Marker.jsx` | ✅ Updated - touch targets, ARIA |
+| `src/components/CalibrationMarker.jsx` | ✅ Updated - touch targets, ARIA |
+| `src/App.jsx` | ✅ Updated - collapsible panels, onboarding |
 
 ---
 
