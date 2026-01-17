@@ -46,6 +46,11 @@ export function EditMode({
   const initialPinchDistanceRef = useRef(null);
   const initialScaleRef = useRef(1);
 
+  // Mouse state (for desktop) - use refs for synchronous updates
+  const isMouseDraggingRef = useRef(false);
+  const mouseStartPosRef = useRef(null);
+  const mouseMoved = useRef(false);
+
   // Loupe state
   const [loupeState, setLoupeState] = useState({
     visible: false,
@@ -264,6 +269,60 @@ export function EditMode({
     [loupeState, screenToImageCoords, onPlaceMarker, onSwipeEnd]
   );
 
+  // Handle mouse click (desktop) - place marker
+  const handleClick = useCallback(
+    (e) => {
+      // Ignore if we were dragging (moved more than threshold)
+      if (mouseMoved.current) {
+        mouseMoved.current = false;
+        return;
+      }
+
+      const coords = screenToImageCoords(e.clientX, e.clientY);
+      onPlaceMarker?.(coords.x, coords.y);
+    },
+    [screenToImageCoords, onPlaceMarker]
+  );
+
+  // Handle mouse down (desktop) - start pan
+  const handleMouseDown = useCallback(
+    (e) => {
+      mouseStartPosRef.current = { x: e.clientX, y: e.clientY };
+      mouseMoved.current = false;
+      isMouseDraggingRef.current = scale > 1;
+    },
+    [scale]
+  );
+
+  // Handle mouse move (desktop) - pan
+  const handleMouseMove = useCallback((e) => {
+    if (!mouseStartPosRef.current) return;
+
+    const dx = e.clientX - mouseStartPosRef.current.x;
+    const dy = e.clientY - mouseStartPosRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Mark as moved if dragged beyond threshold
+    if (distance > 5) {
+      mouseMoved.current = true;
+    }
+
+    // Only pan if zoomed and dragging
+    if (isMouseDraggingRef.current) {
+      setPosition((p) => ({
+        x: p.x + dx,
+        y: p.y + dy,
+      }));
+      mouseStartPosRef.current = { x: e.clientX, y: e.clientY };
+    }
+  }, []);
+
+  // Handle mouse up (desktop) - end pan
+  const handleMouseUp = useCallback(() => {
+    isMouseDraggingRef.current = false;
+    mouseStartPosRef.current = null;
+  }, []);
+
   // Reset zoom
   const handleResetZoom = useCallback(() => {
     setScale(1);
@@ -297,7 +356,8 @@ export function EditMode({
       {/* Image container */}
       <div
         ref={containerRef}
-        className="absolute inset-0 overflow-hidden"
+        data-testid="edit-mode-container"
+        className="absolute inset-0 overflow-hidden cursor-crosshair"
         style={{
           top: EDIT_MODE.HEADER_HEIGHT_PX,
           bottom: 60, // Space for zoom controls
@@ -305,6 +365,11 @@ export function EditMode({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
         {/* Zoomable image wrapper */}
         <div

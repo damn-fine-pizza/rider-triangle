@@ -64,8 +64,8 @@ test.describe('Edit Mode Bug Tests', () => {
     // Enter Edit Mode
     await enterEditMode(page);
 
-    const editMode = page.locator('[data-testid="edit-mode"]');
-    const box = await editMode.boundingBox();
+    const container = page.locator('[data-testid="edit-mode-container"]');
+    const box = await container.boundingBox();
     expect(box).toBeTruthy();
 
     // Place a marker first
@@ -108,8 +108,8 @@ test.describe('Edit Mode Bug Tests', () => {
     // Enter Edit Mode
     await enterEditMode(page);
 
-    const editMode = page.locator('[data-testid="edit-mode"]');
-    const box = await editMode.boundingBox();
+    const container = page.locator('[data-testid="edit-mode-container"]');
+    const box = await container.boundingBox();
     expect(box).toBeTruthy();
 
     // Zoom in first
@@ -128,7 +128,7 @@ test.describe('Edit Mode Bug Tests', () => {
     // Get initial transform of the image wrapper
     const getTransform = async () => {
       return await page.evaluate(() => {
-        const wrapper = document.querySelector('[data-testid="edit-mode"] .w-full.h-full');
+        const wrapper = document.querySelector('[data-testid="edit-mode-container"] > div');
         if (!wrapper) return null;
         const style = window.getComputedStyle(wrapper);
         return style.transform;
@@ -148,7 +148,7 @@ test.describe('Edit Mode Bug Tests', () => {
       // Touch drag
       await page.evaluate(
         ({ startX, startY, endX, endY }) => {
-          const element = document.querySelector('[data-testid="edit-mode"]');
+          const element = document.querySelector('[data-testid="edit-mode-container"]');
           if (!element) return;
 
           const touchStart = new TouchEvent('touchstart', {
@@ -204,8 +204,8 @@ test.describe('Edit Mode Bug Tests', () => {
     // Enter Edit Mode
     await enterEditMode(page);
 
-    const editMode = page.locator('[data-testid="edit-mode"]');
-    const box = await editMode.boundingBox();
+    const container = page.locator('[data-testid="edit-mode-container"]');
+    const box = await container.boundingBox();
     expect(box).toBeTruthy();
 
     // Get initial tool from header
@@ -243,8 +243,8 @@ test.describe('Edit Mode Bug Tests', () => {
     // Enter Edit Mode
     await enterEditMode(page);
 
-    const editMode = page.locator('[data-testid="edit-mode"]');
-    const box = await editMode.boundingBox();
+    const container = page.locator('[data-testid="edit-mode-container"]');
+    const box = await container.boundingBox();
     expect(box).toBeTruthy();
 
     const headerPill = page.locator('[data-testid="edit-mode-header"]');
