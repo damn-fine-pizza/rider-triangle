@@ -6,7 +6,7 @@
 
 import { EDIT_MODE } from '../constants';
 
-export function EditModeHeader({ toolLabel, progress, onExit }) {
+export function EditModeHeader({ toolLabel, progress, onReset, onExit }) {
   return (
     <div
       data-testid="edit-mode-header"
@@ -24,22 +24,43 @@ export function EditModeHeader({ toolLabel, progress, onExit }) {
         )}
       </div>
 
-      {/* Exit button */}
-      <button
-        data-testid="edit-mode-exit"
-        onClick={onExit}
-        className="w-10 h-10 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-full shadow-lg active:bg-black/90 transition-colors"
-        aria-label="Exit edit mode"
-      >
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+      {/* Right side buttons */}
+      <div className="flex items-center gap-2">
+        {/* Reset button */}
+        <button
+          data-testid="edit-mode-reset"
+          onClick={onReset}
+          className="h-10 px-3 flex items-center justify-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-full shadow-lg active:bg-black/90 transition-colors"
+          aria-label="Reset all markers"
+        >
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span className="text-white text-sm">Reset</span>
+        </button>
+
+        {/* Exit button */}
+        <button
+          data-testid="edit-mode-exit"
+          onClick={onExit}
+          className="w-10 h-10 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-full shadow-lg active:bg-black/90 transition-colors"
+          aria-label="Exit edit mode"
+        >
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

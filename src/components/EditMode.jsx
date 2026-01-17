@@ -30,6 +30,7 @@ export function EditMode({
   calibration,
   onPlaceMarker,
   onUpdateMarker,
+  onReset,
   onExit,
   onSwipeStart,
   onSwipeEnd,
@@ -291,7 +292,7 @@ export function EditMode({
       }}
     >
       {/* Header */}
-      <EditModeHeader toolLabel={toolLabel} progress={progress} onExit={onExit} />
+      <EditModeHeader toolLabel={toolLabel} progress={progress} onReset={onReset} onExit={onExit} />
 
       {/* Image container */}
       <div
