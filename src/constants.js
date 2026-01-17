@@ -13,11 +13,20 @@ export const TOUCH = {
 
 // Touch loupe appearance
 export const LOUPE = {
-  SIZE_PX: 100, // Diameter of the loupe circle
-  MAGNIFICATION: 2.5, // Zoom factor inside loupe
-  OFFSET_Y_PX: 130, // Distance above touch point (SIZE + 30)
-  MIN_TOP_PX: 60, // Minimum distance from top edge (SIZE/2 + 10)
-  POINTER_SIZE_PX: 8, // Size of the pointing triangle
+  SIZE_PX: 150, // Diameter of the loupe circle (increased for Edit Mode)
+  MAGNIFICATION: 3, // Zoom factor inside loupe
+  OFFSET_Y_PX: 180, // Distance above touch point
+  MIN_TOP_PX: 80, // Minimum distance from top edge
+  POINTER_SIZE_PX: 10, // Size of the pointing triangle
+};
+
+// Immersive Edit Mode settings
+export const EDIT_MODE = {
+  ANIMATION_DURATION_MS: 200, // Entry/exit animation duration
+  HEADER_HEIGHT_PX: 56, // Height of the header pill
+  ZOOM_BUTTON_SIZE_PX: 44, // Touch target for zoom buttons
+  SWIPE_DOWN_THRESHOLD_PX: 100, // Distance to trigger swipe-down exit
+  SWIPE_VELOCITY_THRESHOLD: 0.5, // Minimum velocity for swipe detection
 };
 
 // Pinch-zoom limits and behavior

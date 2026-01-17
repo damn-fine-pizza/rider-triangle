@@ -209,7 +209,322 @@ test.describe('Mobile Marker Placement - Android', () => {
   });
 });
 
-test.describe('Touch Loupe (Magnifier)', () => {
+test.describe('Immersive Edit Mode (M9)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('h1');
+
+    // Dismiss onboarding if present
+    const skipButton = page.locator('button:has-text("Skip")');
+    if ((await skipButton.count()) > 0) {
+      await skipButton.click();
+      await page.waitForTimeout(300);
+    }
+  });
+
+  test('should enter Edit Mode when tapping on image', async ({ page }) => {
+    // Find the image stage
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    await expect(stage).toBeVisible();
+
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Tap on the image
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    // Edit Mode container should be visible (fullscreen)
+    const editMode = page.locator('[data-testid="edit-mode"]');
+    await expect(editMode).toBeVisible();
+
+    // Header pill should show current tool
+    const headerPill = page.locator('[data-testid="edit-mode-header"]');
+    await expect(headerPill).toBeVisible();
+
+    // Exit button should be visible
+    const exitBtn = page.locator('[data-testid="edit-mode-exit"]');
+    await expect(exitBtn).toBeVisible();
+  });
+
+  test('should exit Edit Mode when tapping exit button', async ({ page }) => {
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Enter Edit Mode
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    // Verify we're in Edit Mode
+    const editMode = page.locator('[data-testid="edit-mode"]');
+    await expect(editMode).toBeVisible();
+
+    // Click exit button
+    const exitBtn = page.locator('[data-testid="edit-mode-exit"]');
+    await exitBtn.click();
+    await page.waitForTimeout(300);
+
+    // Edit Mode should be hidden
+    await expect(editMode).not.toBeVisible();
+  });
+
+  test('should exit Edit Mode on swipe down gesture', async ({ page }) => {
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Enter Edit Mode
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    const editMode = page.locator('[data-testid="edit-mode"]');
+    await expect(editMode).toBeVisible();
+
+    // Simulate swipe down
+    const centerX = box.x + box.width / 2;
+    const startY = box.y + 100;
+    const endY = box.y + 300;
+
+    await page.evaluate(
+      ({ centerX, startY, endY }) => {
+        const element = document.querySelector('[data-testid="edit-mode"]');
+        if (!element) return;
+
+        const touchStart = new Touch({
+          identifier: 1,
+          target: element,
+          clientX: centerX,
+          clientY: startY,
+          radiusX: 2.5,
+          radiusY: 2.5,
+          rotationAngle: 0,
+          force: 0.5,
+        });
+
+        const touchEnd = new Touch({
+          identifier: 1,
+          target: element,
+          clientX: centerX,
+          clientY: endY,
+          radiusX: 2.5,
+          radiusY: 2.5,
+          rotationAngle: 0,
+          force: 0.5,
+        });
+
+        element.dispatchEvent(
+          new TouchEvent('touchstart', {
+            cancelable: true,
+            bubbles: true,
+            touches: [touchStart],
+            targetTouches: [touchStart],
+            changedTouches: [touchStart],
+          })
+        );
+
+        element.dispatchEvent(
+          new TouchEvent('touchmove', {
+            cancelable: true,
+            bubbles: true,
+            touches: [touchEnd],
+            targetTouches: [touchEnd],
+            changedTouches: [touchEnd],
+          })
+        );
+
+        element.dispatchEvent(
+          new TouchEvent('touchend', {
+            cancelable: true,
+            bubbles: true,
+            touches: [],
+            targetTouches: [],
+            changedTouches: [touchEnd],
+          })
+        );
+      },
+      { centerX, startY, endY }
+    );
+
+    await page.waitForTimeout(500);
+
+    // Edit Mode should be hidden after swipe down
+    await expect(editMode).not.toBeVisible();
+  });
+
+  test('should prevent page scroll in Edit Mode', async ({ page }) => {
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Enter Edit Mode
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    // Check that body has overflow hidden
+    const bodyOverflow = await page.evaluate(() => {
+      return document.body.style.overflow;
+    });
+
+    expect(bodyOverflow).toBe('hidden');
+  });
+
+  test('should place marker on tap in Edit Mode', async ({ page }) => {
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Count markers before
+    const markersBefore = await page.locator('[aria-label*="marker"]').count();
+
+    // Enter Edit Mode
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    // Tap to place marker (inside Edit Mode)
+    const editMode = page.locator('[data-testid="edit-mode"]');
+    const editBox = await editMode.boundingBox();
+    if (editBox) {
+      await page.touchscreen.tap(editBox.x + editBox.width / 2, editBox.y + editBox.height / 2);
+      await page.waitForTimeout(300);
+    }
+
+    // Verify marker was placed
+    const markersAfter = await page.locator('[aria-label*="marker"]').count();
+    expect(markersAfter).toBeGreaterThan(markersBefore);
+  });
+
+  test('should show loupe on long-press in Edit Mode', async ({ page }) => {
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Enter Edit Mode
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    const editMode = page.locator('[data-testid="edit-mode"]');
+    const editBox = await editMode.boundingBox();
+    if (!editBox) return;
+
+    const x = editBox.x + editBox.width / 2;
+    const y = editBox.y + editBox.height / 2;
+
+    // Long press
+    await page.evaluate(
+      ({ x, y }) => {
+        const element = document.elementFromPoint(x, y);
+        if (!element) return;
+
+        const touch = new Touch({
+          identifier: Date.now(),
+          target: element,
+          clientX: x,
+          clientY: y,
+          radiusX: 2.5,
+          radiusY: 2.5,
+          rotationAngle: 10,
+          force: 0.5,
+        });
+
+        element.dispatchEvent(
+          new TouchEvent('touchstart', {
+            cancelable: true,
+            bubbles: true,
+            touches: [touch],
+            targetTouches: [touch],
+            changedTouches: [touch],
+          })
+        );
+      },
+      { x, y }
+    );
+
+    // Wait for loupe delay
+    await page.waitForTimeout(300);
+
+    // Loupe should be visible
+    const loupe = page.locator('[data-testid="touch-loupe"]');
+    await expect(loupe).toBeVisible();
+
+    // Clean up
+    await page.evaluate(
+      ({ x, y }) => {
+        const element = document.elementFromPoint(x, y);
+        if (!element) return;
+        const touch = new Touch({
+          identifier: Date.now(),
+          target: element,
+          clientX: x,
+          clientY: y,
+          radiusX: 2.5,
+          radiusY: 2.5,
+          rotationAngle: 10,
+          force: 0.5,
+        });
+        element.dispatchEvent(
+          new TouchEvent('touchend', {
+            cancelable: true,
+            bubbles: true,
+            touches: [],
+            targetTouches: [],
+            changedTouches: [touch],
+          })
+        );
+      },
+      { x, y }
+    );
+  });
+
+  test('should auto-advance to next tool after placing marker', async ({ page }) => {
+    const stage = page.locator('.relative.w-full.overflow-hidden');
+    const box = await stage.boundingBox();
+    if (!box) {
+      test.skip(true, 'Stage not found');
+      return;
+    }
+
+    // Enter Edit Mode
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(500);
+
+    // Get initial tool from header
+    const headerPill = page.locator('[data-testid="edit-mode-header"]');
+    const initialToolText = await headerPill.textContent();
+
+    // Place a marker
+    const editMode = page.locator('[data-testid="edit-mode"]');
+    const editBox = await editMode.boundingBox();
+    if (editBox) {
+      await page.touchscreen.tap(editBox.x + editBox.width / 2, editBox.y + editBox.height / 2);
+      await page.waitForTimeout(300);
+    }
+
+    // Tool should have advanced
+    const newToolText = await headerPill.textContent();
+    expect(newToolText).not.toBe(initialToolText);
+  });
+});
+
+test.describe('Touch Loupe (Magnifier) - Legacy', () => {
   test('should show loupe on long press (150ms hold)', async ({ page, browserName }) => {
     // Skip in non-touch browsers by default
     const hasTouch = await page.evaluate(() => 'ontouchstart' in window);
