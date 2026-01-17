@@ -5,6 +5,7 @@ import { useMarkers, MARKER_TYPES } from './hooks/useMarkers';
 import { useRiderProfile } from './hooks/useRiderProfile';
 import { useMeasurementMode } from './hooks/useMeasurementMode';
 import { useOnboarding } from './hooks/useOnboarding';
+import { useTheme } from './hooks/useTheme';
 import { useImage } from './hooks/useImage';
 import { Marker } from './components/Marker';
 import { CalibrationMarker } from './components/CalibrationMarker';
@@ -19,6 +20,7 @@ import { ExportButton } from './components/ExportButton';
 import { CollapsiblePanel } from './components/CollapsiblePanel';
 import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
+import { hapticMedium, hapticSuccess } from './utils/haptics';
 
 // Tool sequence for auto-advance
 const TOOL_SEQUENCE = ['calibTop', 'calibBot', 'axle', 'seat', 'peg', 'bar'];
@@ -70,6 +72,9 @@ export default function App() {
 
   // Onboarding for first-time users
   const onboarding = useOnboarding();
+
+  // Theme (dark/light mode)
+  const { isDark, toggleTheme } = useTheme();
 
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
@@ -170,15 +175,20 @@ export default function App() {
 
       if (activeTool === 'calibTop') {
         calibration.setCalibPoint(bikeKey, 'top', { x, y });
+        hapticMedium();
         advanceToNextTool();
       } else if (activeTool === 'calibBot') {
         calibration.setCalibPoint(bikeKey, 'bot', { x, y });
+        hapticMedium();
         advanceToNextTool();
       } else if (activeTool === 'axle') {
         calibration.setAxlePosition(bikeKey, { x, y });
+        hapticMedium();
         advanceToNextTool();
       } else if (MARKER_TYPES.includes(activeTool)) {
         markersHook.setMarker(bikeKey, activeTool, { x, y });
+        // Success haptic on last marker (bar)
+        activeTool === 'bar' ? hapticSuccess() : hapticMedium();
         advanceToNextTool();
       }
     },
@@ -419,26 +429,43 @@ export default function App() {
   const hasTwoBikes = bikeKeys.length === 2;
 
   return (
-    <div className="min-h-screen w-full p-4 bg-gray-50">
+    <div className="min-h-screen w-full p-4">
       <div className="flex items-start justify-between mb-2">
         <div>
           <h1 className="text-2xl font-semibold">
             Riding Position Comparison
             {hasTwoBikes && (
-              <span className="text-lg font-normal text-gray-600 ml-2">
+              <span className="text-lg font-normal text-muted ml-2">
                 {activeBikes[secondaryBike]?.label} vs {activeBikes[primaryBike]?.label}
               </span>
             )}
           </h1>
-          <p className="text-gray-700 mt-1">
+          <p className="text-secondary mt-1">
             Calibrate and overlay bikes to compare the rider triangle.
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Dark mode toggle */}
+          <button
+            onClick={toggleTheme}
+            className="btn-ghost p-2"
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
           {onboarding.isComplete && (
             <button
               onClick={onboarding.restart}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-800 text-sm flex items-center gap-1.5"
+              className="btn-ghost text-sm flex items-center gap-1.5"
               title="Show tutorial"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -455,7 +482,7 @@ export default function App() {
         {/* Controls */}
         <div className="xl:col-span-1 space-y-4">
           {/* Bike Manager Toggle */}
-          <div className="p-4 bg-white rounded-2xl shadow">
+          <div className="card p-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-medium">Bikes</h2>
               <button
@@ -768,7 +795,7 @@ export default function App() {
         </div>
 
         {/* Overlay stage */}
-        <div className="xl:col-span-2 p-3 bg-white rounded-2xl shadow relative">
+        <div className="xl:col-span-2 p-3 card relative">
           <div ref={containerRef} className="relative w-full overflow-auto" style={{ minHeight: 520 }}>
             {hasTwoBikes ? (
               <>
@@ -779,29 +806,26 @@ export default function App() {
                 {renderBikeLayer(secondaryBike, true)}
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-center p-6">
-                <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="empty-state">
+                <svg className="w-16 h-16 text-muted mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <h3 className="text-lg font-medium text-gray-700 mb-1">
+                <h3 className="text-lg font-medium text-secondary mb-1">
                   {bikeKeys.length === 0 ? 'No bikes selected' : 'Add another bike'}
                 </h3>
-                <p className="text-gray-500 max-w-xs mb-4">
+                <p className="text-muted max-w-xs mb-4">
                   {bikeKeys.length === 0
                     ? 'Click "Manage bikes" to upload your motorcycle photos and start comparing.'
                     : 'Add a second bike to compare riding positions side by side.'}
                 </p>
-                <button
-                  onClick={() => setShowBikeManager(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                >
+                <button onClick={() => setShowBikeManager(true)} className="btn-primary text-sm">
                   Manage bikes
                 </button>
               </div>
             )}
           </div>
 
-          <div className="mt-3 text-xs text-gray-600">
+          <div className="mt-3 text-xs text-muted">
             Note: this is a visual comparison scaled by the selected tire outer diameter. Minor
             inaccuracies may result from image angle, perspective distortion, and manual point
             placement.
