@@ -67,7 +67,7 @@ export function BikeCard({
   );
 
   return (
-    <div className="border rounded-xl p-3 bg-white shadow-sm">
+    <div className="border border-[--border-color] rounded-xl p-3 bg-[--bg-card] shadow-sm">
       {/* Header: Color dot + Label + Remove */}
       <div className="flex items-center gap-2 mb-2">
         <div
@@ -83,7 +83,7 @@ export function BikeCard({
             onChange={(e) => setEditLabel(e.target.value)}
             onBlur={handleLabelSave}
             onKeyDown={handleLabelKeyDown}
-            className="flex-1 px-1 py-0.5 text-sm font-medium border rounded"
+            className="flex-1 px-1 py-0.5 text-sm font-medium border border-[--border-color] bg-[--bg-card] rounded"
             autoFocus
           />
         ) : (
@@ -108,7 +108,7 @@ export function BikeCard({
       </div>
 
       {/* Image preview */}
-      <div className="relative mb-2 bg-gray-100 rounded-lg overflow-hidden aspect-video">
+      <div className="relative mb-2 bg-[--bg-card-hover] rounded-lg overflow-hidden aspect-video">
         {bike.img ? (
           <img
             src={bike.img}
@@ -116,13 +116,13 @@ export function BikeCard({
             className="w-full h-full object-contain"
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-full text-muted text-sm">
             No image
           </div>
         )}
 
         {/* Change image button overlay */}
-        <label className="absolute bottom-1 right-1 px-2 py-1 bg-white/90 rounded text-xs cursor-pointer hover:bg-white">
+        <label className="absolute bottom-1 right-1 px-2 py-1 bg-[--bg-card]/90 rounded text-xs cursor-pointer hover:bg-[--bg-card]">
           Change
           <input
             type="file"
@@ -136,23 +136,23 @@ export function BikeCard({
       {/* Tire specs */}
       <div className="space-y-1">
         <div className="flex items-center gap-2 text-xs">
-          <label className="w-12 text-gray-600">Front:</label>
+          <label className="w-12 text-secondary">Front:</label>
           <input
             type="text"
             value={bike.tires.front}
             onChange={(e) => handleTireChange('front', e.target.value)}
             placeholder="e.g. 120/70 ZR17"
-            className="flex-1 px-2 py-1 border rounded text-xs"
+            className="flex-1 px-2 py-1 border border-[--border-color] bg-[--bg-card] rounded text-xs"
           />
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <label className="w-12 text-gray-600">Rear:</label>
+          <label className="w-12 text-secondary">Rear:</label>
           <input
             type="text"
             value={bike.tires.rear}
             onChange={(e) => handleTireChange('rear', e.target.value)}
             placeholder="e.g. 190/50 ZR17"
-            className="flex-1 px-2 py-1 border rounded text-xs"
+            className="flex-1 px-2 py-1 border border-[--border-color] bg-[--bg-card] rounded text-xs"
           />
         </div>
       </div>

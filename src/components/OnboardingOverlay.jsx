@@ -31,30 +31,30 @@ export function OnboardingOverlay({
         aria-modal="true"
         aria-labelledby="onboarding-title"
       >
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-[--bg-card] rounded-2xl shadow-xl overflow-hidden">
           {/* Progress bar */}
-          <div className="h-1 bg-gray-200">
+          <div className="h-1 bg-[--bg-card-hover]">
             <div
-              className="h-full bg-blue-600 transition-all duration-300"
+              className="h-full bg-[--accent] transition-all duration-300"
               style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
             />
           </div>
 
           {/* Content */}
           <div className="p-6">
-            <div className="text-xs text-gray-500 mb-1">
+            <div className="text-xs text-muted mb-1">
               Step {currentStepIndex + 1} of {totalSteps}
             </div>
             <h2 id="onboarding-title" className="text-xl font-semibold mb-3">
               {currentStep.title}
             </h2>
-            <p className="text-gray-600 mb-6">{currentStep.message}</p>
+            <p className="text-secondary mb-6">{currentStep.message}</p>
 
             {/* Navigation */}
             <div className="flex items-center justify-between">
               <button
                 onClick={onSkip}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-muted hover:text-primary"
               >
                 Skip tutorial
               </button>
@@ -63,14 +63,14 @@ export function OnboardingOverlay({
                 {!isFirstStep && (
                   <button
                     onClick={onPrev}
-                    className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50"
+                    className="btn-secondary"
                   >
                     Back
                   </button>
                 )}
                 <button
                   onClick={onNext}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="btn-primary"
                 >
                   {isLastStep ? 'Get Started' : 'Next'}
                 </button>

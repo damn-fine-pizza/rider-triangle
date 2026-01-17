@@ -123,7 +123,7 @@ export function CalibrationMarker({ x, y, color, label, onDrag, scale = 1 }) {
       </div>
       {/* Label */}
       <div
-        className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] px-1 py-0.5 rounded bg-white/90 border shadow-sm whitespace-nowrap font-medium pointer-events-none"
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] px-1 py-0.5 rounded bg-[--bg-card]/90 border border-[--border-color] shadow-sm whitespace-nowrap font-medium pointer-events-none"
         style={{ color }}
       >
         {label}

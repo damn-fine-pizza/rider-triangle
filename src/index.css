@@ -89,6 +89,27 @@
   .empty-state {
     @apply flex flex-col items-center justify-center h-64 text-center p-6;
   }
+
+  /* Toggle button - base inactive state (theme-aware) */
+  .btn-toggle-inactive {
+    @apply px-2 py-1 rounded border text-sm;
+    @apply border-[--border-color] bg-[--bg-card] text-[--text-primary];
+    @apply hover:bg-[--bg-card-hover] transition-colors;
+  }
+
+  /* Toggle button - active state with accent color */
+  .btn-toggle-active {
+    @apply px-2 py-1 rounded border text-sm;
+    @apply bg-[--accent] text-white border-[--accent];
+    @apply hover:bg-[--accent-hover] transition-colors;
+  }
+
+  /* Toggle button - active state with neutral/gray color */
+  .btn-toggle-neutral-active {
+    @apply px-2 py-1 rounded border text-sm;
+    @apply bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100;
+    @apply transition-colors;
+  }
 }
 
 /* Responsive utilities */
