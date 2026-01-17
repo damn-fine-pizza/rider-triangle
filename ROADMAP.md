@@ -14,7 +14,8 @@
 | 1 - Image Upload | ✅ Complete | Custom bikes, localStorage |
 | 2 - Rider Profile | ✅ Complete | Body measurements, proportions |
 | 3 - Angle Calculations | ✅ Complete | Connect rider to bike, compute angles |
-| 4 - Visual Feedback | ⬅️ Next | Skeleton overlay, comfort zones |
+| 3.5 - GitHub Pages | ⬅️ Next | Deploy preview to GitHub Pages |
+| 4 - Visual Feedback | Planned | Skeleton overlay, comfort zones |
 | 5 - Real Measurements | Planned | Bypass photo estimation |
 | 6 - Calibration UX | Planned | Visual markers, zoom/pan |
 | 7 - Export & Share | Planned | PDF, image, shareable links |
@@ -161,7 +162,27 @@ Arm Angle:
 
 ---
 
-## Milestone 4: Visual Feedback & Skeleton Overlay ⬅️ NEXT
+## Milestone 3.5: GitHub Pages Deployment ⬅️ NEXT
+
+**Goal:** Deploy the app to GitHub Pages for public preview.
+
+### Tasks
+- [ ] Configure Vite base path for GitHub Pages
+- [ ] Create GitHub Actions workflow for automated deployment
+- [ ] Enable GitHub Pages in repo settings
+
+### Files
+| File | Action |
+|------|--------|
+| `vite.config.js` | Add `base: '/rider-triangle/'` |
+| `.github/workflows/deploy.yml` | Create CI/CD workflow |
+
+### Deployment URL
+`https://<username>.github.io/rider-triangle/`
+
+---
+
+## Milestone 4: Visual Feedback & Skeleton Overlay
 
 **Goal:** Show a stick figure representation of the rider on the bike for intuitive understanding.
 
