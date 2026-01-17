@@ -16,8 +16,8 @@
 | 3 - Angle Calculations | ✅ Complete | Connect rider to bike, compute angles |
 | 3.5 - GitHub Pages | ✅ Complete | Deploy preview to GitHub Pages |
 | 4 - Visual Feedback | ✅ Complete | Skeleton overlay, comfort zones |
-| 5 - Real Measurements | ⬅️ Next | Bypass photo estimation |
-| 6 - Calibration UX | Planned | Visual markers, zoom/pan |
+| 5 - Real Measurements | ✅ Complete | Bypass photo estimation |
+| 6 - Calibration UX | ⬅️ Next | Visual markers, zoom/pan |
 | 7 - Export & Share | Planned | PDF, image, shareable links |
 | 8 - Mobile & Polish | Planned | Touch, wizard, accessibility |
 | 9 - Bike Database | Planned | Pre-configured popular bikes |
@@ -222,7 +222,7 @@ Arm Angle:
 
 ---
 
-## Milestone 5: Real Measurements Mode ⬅️ NEXT
+## Milestone 5: Real Measurements Mode ✅ COMPLETE
 
 **Goal:** When user has physical access to bike, input exact measurements instead of photo estimates.
 
@@ -234,26 +234,32 @@ Photo-based measurements are approximations. Factors affecting accuracy:
 
 With real measurements, user gets precise ergonomic analysis.
 
-### Tasks
-- [ ] Add "Measurement Mode" toggle per bike: Photo / Manual
-- [ ] Direct input fields for:
-  - Seat height (from ground or from peg)
-  - Peg position (forward/back from seat, up/down)
-  - Bar reach (horizontal from seat)
-  - Bar drop (vertical from seat)
-- [ ] Bypass photo calibration when manual mode active
-- [ ] Show side-by-side: estimated vs manual measurements
-- [ ] Allow hybrid: some measurements manual, rest from photo
+### Completed Tasks
+- [x] Add "Measurement Mode" toggle per bike: Photo / Manual
+- [x] Direct input fields for:
+  - Seat → Peg (horizontal distance behind seat)
+  - Seat → Peg (vertical distance below seat)
+  - Seat → Bar (horizontal reach forward)
+  - Seat → Bar (vertical drop)
+- [x] Bypass photo calibration when manual mode active
+- [x] Calculate angles from manual measurements
+- [x] Display calculated distances from manual inputs
 
 ### Files
-| File | Action |
+| File | Status |
 |------|--------|
-| `src/components/ManualMeasurements.jsx` | Create |
-| `src/hooks/useMeasurementMode.js` | Create |
+| `src/components/ManualMeasurements.jsx` | ✅ Created |
+| `src/hooks/useMeasurementMode.js` | ✅ Created |
+| `src/utils/ergonomics.js` | ✅ Updated - added calculateAllAnglesFromDistances |
+| `src/App.jsx` | ✅ Updated - integrated measurement mode |
+
+### Future Enhancements (Deferred)
+- [ ] Show side-by-side: photo estimated vs manual measurements
+- [ ] Allow hybrid: some measurements manual, rest from photo
 
 ---
 
-## Milestone 6: Calibration UX Improvements
+## Milestone 6: Calibration UX Improvements ⬅️ NEXT
 
 **Goal:** Make the calibration process more intuitive and precise.
 

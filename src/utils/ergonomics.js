@@ -199,6 +199,63 @@ export function calculateAllAngles(markers, measurements, pxPerMM) {
 }
 
 /**
+ * Calculate all ergonomic angles from direct distance measurements.
+ *
+ * Used for manual measurement mode where user inputs distances directly.
+ *
+ * @param {Object} distances - Direct distances in mm {seatPeg, seatBar, pegBar}
+ * @param {Object} manualMeasurements - Manual input measurements
+ * @param {Object} riderMeasurements - Rider body measurements
+ * @returns {Object} All calculated angles
+ */
+export function calculateAllAnglesFromDistances(distances, manualMeasurements, riderMeasurements) {
+  if (!distances || !riderMeasurements) {
+    return {
+      knee: null,
+      hip: null,
+      back: null,
+      arm: null,
+    };
+  }
+
+  const { seatPeg, seatBar } = distances;
+  const { thigh, lowerLeg, torso, upperArm, forearm } = riderMeasurements;
+
+  // Calculate knee angle from seat-peg distance
+  const knee = calculateKneeAngle(seatPeg, thigh, lowerLeg);
+
+  // Calculate arm angle from seat-bar distance
+  const arm = calculateArmAngle(seatBar, upperArm, forearm, 100);
+
+  // For hip and back angles, we need the actual geometry
+  // Reconstruct virtual markers from manual measurements
+  let hip = null;
+  let back = null;
+
+  if (manualMeasurements) {
+    const { seatToPegHorizontal, seatToPegVertical, seatToBarHorizontal, seatToBarVertical } = manualMeasurements;
+
+    if (seatToPegHorizontal != null && seatToPegVertical != null &&
+        seatToBarHorizontal != null && seatToBarVertical != null) {
+      // Virtual markers (seat at origin)
+      const seat = { x: 0, y: 0 };
+      const peg = { x: -seatToPegHorizontal, y: seatToPegVertical };
+      const bar = { x: seatToBarHorizontal, y: -seatToBarVertical };
+
+      hip = calculateHipAngle(seat, peg, bar, torso);
+      back = calculateBackAngle(seat, bar);
+    }
+  }
+
+  return {
+    knee,
+    hip,
+    back,
+    arm,
+  };
+}
+
+/**
  * Format an angle for display.
  *
  * @param {number|null} angle - Angle in degrees

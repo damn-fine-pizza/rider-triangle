@@ -3,15 +3,17 @@ import { useBikeStore } from './hooks/useBikeStore';
 import { useCalibration } from './hooks/useCalibration';
 import { useMarkers, MARKER_TYPES } from './hooks/useMarkers';
 import { useRiderProfile } from './hooks/useRiderProfile';
+import { useMeasurementMode } from './hooks/useMeasurementMode';
 import { useImage } from './hooks/useImage';
 import { Marker } from './components/Marker';
 import { ClickGuide } from './components/ClickGuide';
 import { BikeCard } from './components/BikeCard';
 import { ImageUpload } from './components/ImageUpload';
 import { RiderProfile } from './components/RiderProfile';
+import { ManualMeasurements } from './components/ManualMeasurements';
 import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
 import { SkeletonOverlay } from './components/SkeletonOverlay';
-import { calculateAllAngles } from './utils/ergonomics';
+import { calculateAllAngles, calculateAllAnglesFromDistances } from './utils/ergonomics';
 
 // Tool sequence for auto-advance
 const TOOL_SEQUENCE = ['calibTop', 'calibBot', 'axle', 'seat', 'peg', 'bar'];
@@ -58,6 +60,9 @@ export default function App() {
   // Rider profile hook
   const riderProfile = useRiderProfile();
 
+  // Measurement mode hook (photo vs manual)
+  const measurementMode = useMeasurementMode();
+
   // Image hooks - create for each active bike
   const primaryImg = useImage(activeBikes[primaryBike]?.img);
   const secondaryImg = useImage(activeBikes[secondaryBike]?.img);
@@ -76,21 +81,31 @@ export default function App() {
   // Calculate ergonomic angles for each bike
   const bikeAngles = useMemo(() => {
     const result = {};
-    const measurements = riderProfile.measurements;
+    const riderMeasurements = riderProfile.measurements;
 
     bikeKeys.forEach((key) => {
-      const markers = markersHook.markers[key];
-      const pxPerMM = calibration.pxPerMM[key];
+      const mode = measurementMode.getMode(key);
 
-      if (markers && pxPerMM && measurements) {
-        result[key] = calculateAllAngles(markers, measurements, pxPerMM);
+      if (mode === 'manual' && measurementMode.isComplete(key)) {
+        // Use manual measurements
+        const distances = measurementMode.getDistances(key);
+        const manualInputs = measurementMode.getMeasurements(key);
+        result[key] = calculateAllAnglesFromDistances(distances, manualInputs, riderMeasurements);
       } else {
-        result[key] = { knee: null, hip: null, back: null, arm: null };
+        // Use photo-based calibration
+        const markers = markersHook.markers[key];
+        const pxPerMM = calibration.pxPerMM[key];
+
+        if (markers && pxPerMM && riderMeasurements) {
+          result[key] = calculateAllAngles(markers, riderMeasurements, pxPerMM);
+        } else {
+          result[key] = { knee: null, hip: null, back: null, arm: null };
+        }
       }
     });
 
     return result;
-  }, [bikeKeys, markersHook.markers, calibration.pxPerMM, riderProfile.measurements]);
+  }, [bikeKeys, markersHook.markers, calibration.pxPerMM, riderProfile.measurements, measurementMode]);
 
   // Auto-advance to next tool
   const advanceToNextTool = useCallback(() => {
@@ -153,7 +168,14 @@ export default function App() {
 
   // Get distances for results table
   const getDistancesForBike = (bikeKey) => {
-    // Use primary bike's pxPerMM for consistent measurement
+    const mode = measurementMode.getMode(bikeKey);
+
+    if (mode === 'manual' && measurementMode.isComplete(bikeKey)) {
+      // Use manual measurements
+      return measurementMode.getDistances(bikeKey);
+    }
+
+    // Use photo-based calibration
     return markersHook.getDistances(bikeKey, calibration.pxPerMM[calibration.primaryBike]);
   };
 
@@ -585,15 +607,34 @@ export default function App() {
             )}
           </div>
 
-          {/* Step 5: Rider Profile */}
+          {/* Step 5: Measurement Mode */}
           <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">5) Rider Profile</h2>
+            <h2 className="font-medium mb-2">5) Measurement Mode</h2>
+            <p className="text-xs text-gray-600 mb-3">
+              Use Photo mode for image-based estimation, or Manual mode if you have exact measurements.
+            </p>
+            <div className="space-y-4">
+              {bikeKeys.map((key) => (
+                <ManualMeasurements
+                  key={key}
+                  bikeKey={key}
+                  measurementHook={measurementMode}
+                  bikeLabel={activeBikes[key]?.label}
+                  bikeColor={activeBikes[key]?.color}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Step 6: Rider Profile */}
+          <div className="p-4 bg-white rounded-2xl shadow">
+            <h2 className="font-medium mb-2">6) Rider Profile</h2>
             <RiderProfile riderHook={riderProfile} />
           </div>
 
-          {/* Step 6: Ergonomic Angles */}
+          {/* Step 7: Ergonomic Angles */}
           <div className="p-4 bg-white rounded-2xl shadow">
-            <h2 className="font-medium mb-2">6) Ergonomic Angles</h2>
+            <h2 className="font-medium mb-2">7) Ergonomic Angles</h2>
             <div className="mb-3">
               <div className="text-xs text-gray-500 mb-1">Riding style:</div>
               <RidingStyleSelector value={ridingStyle} onChange={setRidingStyle} />
