@@ -322,7 +322,7 @@ With real measurements, user gets precise ergonomic analysis.
 - [x] Collapsible panels for mobile
 - [x] Touch-optimized marker dragging (larger hit areas)
 - [x] Haptic feedback on mobile (Vibration API)
-- [ ] Responsive layout refinements
+- [x] Responsive layout refinements
 - [x] Loading states and error handling
 - [x] Empty states with helpful prompts
 
@@ -334,9 +334,9 @@ With real measurements, user gets precise ergonomic analysis.
 ### Accessibility
 - [x] Keyboard navigation for all interactions (1-6 keys, Tab)
 - [x] Screen reader labels (ARIA)
-- [ ] Reduced motion option (deferred)
+- [x] Reduced motion support (prefers-reduced-motion)
 
-### Performance
+### Performance (Deferred to M8.5)
 - [ ] Lazy load components
 - [ ] Optimize image handling (compress before storing)
 - [ ] Service worker caching strategy

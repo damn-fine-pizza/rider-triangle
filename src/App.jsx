@@ -429,10 +429,10 @@ export default function App() {
   const hasTwoBikes = bikeKeys.length === 2;
 
   return (
-    <div className="min-h-screen w-full p-4">
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h1 className="text-2xl font-semibold">
+    <div className="min-h-screen w-full container-responsive py-3 sm:py-4">
+      <div className="flex items-start justify-between mb-2 gap-2">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-responsive-lg font-semibold truncate">
             Riding Position Comparison
             {hasTwoBikes && (
               <span className="text-lg font-normal text-muted ml-2">
