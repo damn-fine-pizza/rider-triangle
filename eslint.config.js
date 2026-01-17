@@ -14,6 +14,10 @@ export default [
         ...globals.browser,
         ...globals.es2020,
         ...globals.node,
+        // Vite define globals
+        __APP_VERSION__: 'readonly',
+        __BUILD_TIME__: 'readonly',
+        __GIT_HASH__: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: {

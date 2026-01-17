@@ -23,6 +23,7 @@ import { CollapsiblePanel } from './components/CollapsiblePanel';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { TouchLoupe } from './components/TouchLoupe';
 import { EditMode } from './components/EditMode';
+import { VersionBadge } from './components/VersionBadge';
 import { TOOL_SEQUENCE, TOOL_LABELS, TOUCH, ZOOM, STAGE_MIN_HEIGHT_PX } from './constants';
 
 // Lazy load ExportButton (includes html2canvas which is heavy)
@@ -1353,6 +1354,9 @@ export default function App() {
           onDismiss={installPrompt.dismiss}
         />
       )}
+
+      {/* Version badge */}
+      <VersionBadge />
     </div>
   );
 }
