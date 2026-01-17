@@ -10,6 +10,7 @@ import { BikeCard } from './components/BikeCard';
 import { ImageUpload } from './components/ImageUpload';
 import { RiderProfile } from './components/RiderProfile';
 import { AngleDisplay, RidingStyleSelector } from './components/AngleDisplay';
+import { SkeletonOverlay } from './components/SkeletonOverlay';
 import { calculateAllAngles } from './utils/ergonomics';
 
 // Tool sequence for auto-advance
@@ -46,6 +47,8 @@ export default function App() {
   const [activeTool, setActiveTool] = useState('calibTop');
   const [showBikeManager, setShowBikeManager] = useState(false);
   const [ridingStyle, setRidingStyle] = useState('commute');
+  const [showSkeleton, setShowSkeleton] = useState(true);
+  const [showSkeletonAngles, setShowSkeletonAngles] = useState(true);
   const containerRef = useRef(null);
 
   // Calibration and markers hooks - pass activeBikes
@@ -281,6 +284,20 @@ export default function App() {
           />
         )}
 
+        {/* Skeleton overlay */}
+        {showSkeleton && markers.seat && markers.peg && markers.bar && (
+          <SkeletonOverlay
+            markers={markers}
+            measurements={riderProfile.measurements}
+            pxPerMM={calibration.pxPerMM[bikeKey]}
+            angles={bikeAngles[bikeKey]}
+            color={bike.color}
+            ridingStyle={ridingStyle}
+            showAngles={showSkeletonAngles}
+            scale={scale}
+          />
+        )}
+
         {/* Click guide */}
         {activeBike === bikeKey && (
           <div className="absolute left-2 top-2">
@@ -497,6 +514,25 @@ export default function App() {
                     Show {activeBikes[key]?.label.split(' ')[0]}
                   </label>
                 ))}
+              </div>
+              <div className="flex items-center gap-3 text-sm mt-2 pt-2 border-t">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={showSkeleton}
+                    onChange={(e) => setShowSkeleton(e.target.checked)}
+                  />
+                  Show skeleton
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={showSkeletonAngles}
+                    onChange={(e) => setShowSkeletonAngles(e.target.checked)}
+                    disabled={!showSkeleton}
+                  />
+                  Show angles
+                </label>
               </div>
               <div className="mt-2 text-xs text-gray-600">
                 Tip: calibrate TOP/BOTTOM on the outer tire profile, then mark the rear axle center on
